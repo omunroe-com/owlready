@@ -11,7 +11,7 @@ University Paris 13, Sorbonne Paris Cité, INSERM UMRS 1142, Paris 6 University,
 Jean-Baptiste Lamy. It was developed during the VIIIP research project funded by ANSM, the French Drug Agency;
 this is why most examples in this documentation relate to drug ;).
 
-Owlready is available under the GNU LGPL licence.
+Owlready is available under the GNU LGPL licence v3.
 
 Table of content
 ----------------
