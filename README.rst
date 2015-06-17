@@ -33,7 +33,7 @@ In case of trouble, please contact Jean-Baptiste Lamy
   FRANCE
 
 What can I do with Owlready?
---------------------------
+----------------------------
 
 Load an ontology from a local repository, or from Internet:
 
