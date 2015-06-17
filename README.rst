@@ -67,16 +67,18 @@ Export to OWL/XML file:
 
 Perform reasoning, and classify instances and classes:
 
->>> test_pizza.__class__
-onto.Pizza
- 
->>> # Execute HermiT and reparent instances and classes
->>> onto.sync_reasoner()
+::
 
->>> test_pizza.__class__
-onto.NonVegetarianPizza
->>> test_pizza.eat()
-Beurk! I'm vegetarian !
+   >>> test_pizza.__class__
+   onto.Pizza
+   
+   >>> # Execute HermiT and reparent instances and classes
+   >>> onto.sync_reasoner()
+   
+   >>> test_pizza.__class__
+   onto.NonVegetarianPizza
+   >>> test_pizza.eat()
+   Beurk! I'm vegetarian !
 
 For more documentation, look at the doc/ and doc/examples/ directories in the source.
 
