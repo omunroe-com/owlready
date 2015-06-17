@@ -1,7 +1,7 @@
 Owlready
 ========
 
-**Owlready** (previously named Ontopy) is a module for ontology-oriented programming in Python 3.
+Owlready (previously named Ontopy) is a module for ontology-oriented programming in Python 3.
 
 Owlready can:
 
@@ -32,38 +32,39 @@ In case of trouble, please contact Jean-Baptiste Lamy
   93017 BOBIGNY
   FRANCE
 
+  
 What can I do with Owlready?
 ----------------------------
 
 Load an ontology from a local repository, or from Internet:
 
->>> from owlready import *
->>> onto_path.append("/path/to/your/local/ontology/repository")
->>> onto = get_ontology("http://www.lesfleursdunormal.fr/static/_downloads/pizza_onto.owl")
->>> onto.load()
+  >>> from owlready import *
+  >>> onto_path.append("/path/to/your/local/ontology/repository")
+  >>> onto = get_ontology("http://www.lesfleursdunormal.fr/static/_downloads/pizza_onto.owl")
+  >>> onto.load()
 
 Create new classes in the ontology, possibly mixing OWL restrictions and Python methods:
 
->>> class NonVegetarianPizza(onto.Pizza):
-...   equivalent_to = [
-...     onto.Pizza
-...   & ( restriction("has_topping", SOME, onto.MeatTopping)
-...     | restriction("has_topping", SOME, onto.FishTopping)
-...     ) ]
-...   def eat(self): print("Beurk! I'm vegetarian!")
+  >>> class NonVegetarianPizza(onto.Pizza):
+  ...   equivalent_to = [
+  ...     onto.Pizza
+  ...   & ( restriction("has_topping", SOME, onto.MeatTopping)
+  ...     | restriction("has_topping", SOME, onto.FishTopping)
+  ...     ) ]
+  ...   def eat(self): print("Beurk! I'm vegetarian!")
 
 Access ontology class, and create new instances / individuals:
 
->>> onto.Pizza
-pizza_onto.Pizza
->>> test_pizza = onto.Pizza("test_pizza_owl_identifier")
->>> test_pizza.has_topping = [ onto.CheeseTopping(),
-...                            onto.TomatoTopping(),
-...                            onto.MeatTopping  () ]
+  >>> onto.Pizza
+  pizza_onto.Pizza
+  >>> test_pizza = onto.Pizza("test_pizza_owl_identifier")
+  >>> test_pizza.has_topping = [ onto.CheeseTopping(),
+  ...                            onto.TomatoTopping(),
+  ...                            onto.MeatTopping  () ]
 
 Export to OWL/XML file:
 
->>> test_onto.save()
+  >>> test_onto.save()
 
 Perform reasoning, and classify instances and classes:
 
