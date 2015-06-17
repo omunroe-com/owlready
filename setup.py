@@ -32,7 +32,7 @@ distutils.core.setup(
   name         = "Owlready",
   version      = "0.1",
   license      = "LGPLv3+",
-  description  = "A module for ontology-oriented programming in Python: load OWL ontologies as Python objects, modify them, save to OWL XML, and perform reasoning via HermiT. It can also generate dialog boxes for editing instances.",
+  description  = "A module for ontology-oriented programming in Python: load OWL 2.0 ontologies as Python objects, modify them, save to OWL XML, and perform reasoning via HermiT. It can also generate dialog boxes for editing instances.",
   long_description = open(os.path.join(HERE, "README.rst")).read(),
   
   author       = "Lamy Jean-Baptiste (Jiba)",

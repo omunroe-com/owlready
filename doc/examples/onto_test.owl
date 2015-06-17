@@ -123,8 +123,8 @@
 <ClassAssertion>
 <ObjectAllValuesFrom><ObjectProperty IRI="http://test.org/onto_test.owl#has_arm"/>
 <ObjectOneOf><NamedIndividual IRI="http://test.org/onto_test.owl#arm_1"/></ObjectOneOf></ObjectAllValuesFrom><NamedIndividual IRI="http://test.org/onto_test.owl#clinical_trial_1"/></ClassAssertion>
-<ObjectPropertyAssertion><ObjectProperty IRI="http://test.org/onto_test.owl#has_arm"/><NamedIndividual IRI="http://test.org/onto_test.owl#clinical_trial_1"/><NamedIndividual IRI="http://test.org/onto_test.owl#arm_1"/></ObjectPropertyAssertion>
 <DataPropertyAssertion><DataProperty IRI="http://test.org/onto_test.owl#has_trial_code"/><NamedIndividual IRI="http://test.org/onto_test.owl#clinical_trial_1"/><Literal datatypeIRI="&xsd;string">1</Literal></DataPropertyAssertion>
+<ObjectPropertyAssertion><ObjectProperty IRI="http://test.org/onto_test.owl#has_arm"/><NamedIndividual IRI="http://test.org/onto_test.owl#clinical_trial_1"/><NamedIndividual IRI="http://test.org/onto_test.owl#arm_1"/></ObjectPropertyAssertion>
 
 <ClassAssertion><Class IRI="http://test.org/onto_test.owl#Arm"/><NamedIndividual IRI="http://test.org/onto_test.owl#arm_1"/></ClassAssertion>
 <ClassAssertion>
@@ -138,16 +138,16 @@
 <ObjectAllValuesFrom><ObjectProperty IRI="http://test.org/onto_test.owl#prescribed_to_arm"/>
 <ObjectOneOf><NamedIndividual IRI="http://test.org/onto_test.owl#arm_1"/></ObjectOneOf></ObjectAllValuesFrom><NamedIndividual IRI="http://test.org/onto_test.owl#drug_intervention_1"/></ClassAssertion>
 <DataPropertyAssertion><DataProperty IRI="http://test.org/onto_test.owl#has_daily_dose"/><NamedIndividual IRI="http://test.org/onto_test.owl#drug_intervention_1"/><Literal datatypeIRI="&xsd;decimal">100.0</Literal></DataPropertyAssertion>
-<ObjectPropertyAssertion><ObjectProperty IRI="http://test.org/onto_test.owl#prescribed_to_arm"/><NamedIndividual IRI="http://test.org/onto_test.owl#drug_intervention_1"/><NamedIndividual IRI="http://test.org/onto_test.owl#arm_1"/></ObjectPropertyAssertion>
 <DataPropertyAssertion><DataProperty IRI="http://test.org/onto_test.owl#has_drug"/><NamedIndividual IRI="http://test.org/onto_test.owl#drug_intervention_1"/><Literal datatypeIRI="&xsd;string">drug_A</Literal></DataPropertyAssertion>
+<ObjectPropertyAssertion><ObjectProperty IRI="http://test.org/onto_test.owl#prescribed_to_arm"/><NamedIndividual IRI="http://test.org/onto_test.owl#drug_intervention_1"/><NamedIndividual IRI="http://test.org/onto_test.owl#arm_1"/></ObjectPropertyAssertion>
 
 <ClassAssertion><Class IRI="http://test.org/onto_test.owl#ClinicalTrial"/><NamedIndividual IRI="http://test.org/onto_test.owl#clinical_trial_2"/></ClassAssertion>
 <ClassAssertion>
 <ObjectAllValuesFrom><ObjectProperty IRI="http://test.org/onto_test.owl#has_arm"/>
 <ObjectOneOf><NamedIndividual IRI="http://test.org/onto_test.owl#arm_2_1"/><NamedIndividual IRI="http://test.org/onto_test.owl#arm_2_2"/></ObjectOneOf></ObjectAllValuesFrom><NamedIndividual IRI="http://test.org/onto_test.owl#clinical_trial_2"/></ClassAssertion>
+<DataPropertyAssertion><DataProperty IRI="http://test.org/onto_test.owl#has_trial_code"/><NamedIndividual IRI="http://test.org/onto_test.owl#clinical_trial_2"/><Literal datatypeIRI="&xsd;string">2</Literal></DataPropertyAssertion>
 <ObjectPropertyAssertion><ObjectProperty IRI="http://test.org/onto_test.owl#has_arm"/><NamedIndividual IRI="http://test.org/onto_test.owl#clinical_trial_2"/><NamedIndividual IRI="http://test.org/onto_test.owl#arm_2_1"/></ObjectPropertyAssertion>
 <ObjectPropertyAssertion><ObjectProperty IRI="http://test.org/onto_test.owl#has_arm"/><NamedIndividual IRI="http://test.org/onto_test.owl#clinical_trial_2"/><NamedIndividual IRI="http://test.org/onto_test.owl#arm_2_2"/></ObjectPropertyAssertion>
-<DataPropertyAssertion><DataProperty IRI="http://test.org/onto_test.owl#has_trial_code"/><NamedIndividual IRI="http://test.org/onto_test.owl#clinical_trial_2"/><Literal datatypeIRI="&xsd;string">2</Literal></DataPropertyAssertion>
 
 <ClassAssertion><Class IRI="http://test.org/onto_test.owl#Arm"/><NamedIndividual IRI="http://test.org/onto_test.owl#arm_2_1"/></ClassAssertion>
 <ClassAssertion>
@@ -161,8 +161,8 @@
 <ObjectAllValuesFrom><ObjectProperty IRI="http://test.org/onto_test.owl#prescribed_to_arm"/>
 <ObjectOneOf><NamedIndividual IRI="http://test.org/onto_test.owl#arm_2_1"/></ObjectOneOf></ObjectAllValuesFrom><NamedIndividual IRI="http://test.org/onto_test.owl#drug_intervention_2_1"/></ClassAssertion>
 <DataPropertyAssertion><DataProperty IRI="http://test.org/onto_test.owl#has_daily_dose"/><NamedIndividual IRI="http://test.org/onto_test.owl#drug_intervention_2_1"/><Literal datatypeIRI="&xsd;decimal">100.0</Literal></DataPropertyAssertion>
-<ObjectPropertyAssertion><ObjectProperty IRI="http://test.org/onto_test.owl#prescribed_to_arm"/><NamedIndividual IRI="http://test.org/onto_test.owl#drug_intervention_2_1"/><NamedIndividual IRI="http://test.org/onto_test.owl#arm_2_1"/></ObjectPropertyAssertion>
 <DataPropertyAssertion><DataProperty IRI="http://test.org/onto_test.owl#has_drug"/><NamedIndividual IRI="http://test.org/onto_test.owl#drug_intervention_2_1"/><Literal datatypeIRI="&xsd;string">drug_A</Literal></DataPropertyAssertion>
+<ObjectPropertyAssertion><ObjectProperty IRI="http://test.org/onto_test.owl#prescribed_to_arm"/><NamedIndividual IRI="http://test.org/onto_test.owl#drug_intervention_2_1"/><NamedIndividual IRI="http://test.org/onto_test.owl#arm_2_1"/></ObjectPropertyAssertion>
 
 <ClassAssertion><Class IRI="http://test.org/onto_test.owl#Arm"/><NamedIndividual IRI="http://test.org/onto_test.owl#arm_2_2"/></ClassAssertion>
 <ClassAssertion>
@@ -176,17 +176,17 @@
 <ObjectAllValuesFrom><ObjectProperty IRI="http://test.org/onto_test.owl#prescribed_to_arm"/>
 <ObjectOneOf><NamedIndividual IRI="http://test.org/onto_test.owl#arm_2_2"/></ObjectOneOf></ObjectAllValuesFrom><NamedIndividual IRI="http://test.org/onto_test.owl#drug_intervention_2_2"/></ClassAssertion>
 <DataPropertyAssertion><DataProperty IRI="http://test.org/onto_test.owl#has_daily_dose"/><NamedIndividual IRI="http://test.org/onto_test.owl#drug_intervention_2_2"/><Literal datatypeIRI="&xsd;decimal">200.0</Literal></DataPropertyAssertion>
-<ObjectPropertyAssertion><ObjectProperty IRI="http://test.org/onto_test.owl#prescribed_to_arm"/><NamedIndividual IRI="http://test.org/onto_test.owl#drug_intervention_2_2"/><NamedIndividual IRI="http://test.org/onto_test.owl#arm_2_2"/></ObjectPropertyAssertion>
 <DataPropertyAssertion><DataProperty IRI="http://test.org/onto_test.owl#has_drug"/><NamedIndividual IRI="http://test.org/onto_test.owl#drug_intervention_2_2"/><Literal datatypeIRI="&xsd;string">drug_B</Literal></DataPropertyAssertion>
+<ObjectPropertyAssertion><ObjectProperty IRI="http://test.org/onto_test.owl#prescribed_to_arm"/><NamedIndividual IRI="http://test.org/onto_test.owl#drug_intervention_2_2"/><NamedIndividual IRI="http://test.org/onto_test.owl#arm_2_2"/></ObjectPropertyAssertion>
 
 <ClassAssertion><Class IRI="http://test.org/onto_test.owl#ClinicalTrial"/><NamedIndividual IRI="http://test.org/onto_test.owl#clinical_trial_3"/></ClassAssertion>
 <ClassAssertion>
 <ObjectAllValuesFrom><ObjectProperty IRI="http://test.org/onto_test.owl#has_arm"/>
 <ObjectOneOf><NamedIndividual IRI="http://test.org/onto_test.owl#arm_3_2"/><NamedIndividual IRI="http://test.org/onto_test.owl#arm_3_1"/></ObjectOneOf></ObjectAllValuesFrom><NamedIndividual IRI="http://test.org/onto_test.owl#clinical_trial_3"/></ClassAssertion>
+<DataPropertyAssertion><DataProperty IRI="http://test.org/onto_test.owl#has_trial_code"/><NamedIndividual IRI="http://test.org/onto_test.owl#clinical_trial_3"/><Literal datatypeIRI="&xsd;string">3</Literal></DataPropertyAssertion>
 <ObjectPropertyAssertion><ObjectProperty IRI="http://test.org/onto_test.owl#has_arm"/><NamedIndividual IRI="http://test.org/onto_test.owl#clinical_trial_3"/><NamedIndividual IRI="http://test.org/onto_test.owl#arm_3_1"/></ObjectPropertyAssertion>
 <ObjectPropertyAssertion><ObjectProperty IRI="http://test.org/onto_test.owl#has_arm"/><NamedIndividual IRI="http://test.org/onto_test.owl#clinical_trial_3"/><NamedIndividual IRI="http://test.org/onto_test.owl#arm_3_2"/></ObjectPropertyAssertion>
 <ObjectPropertyAssertion><ObjectProperty IRI="http://test.org/onto_test.owl#has_arm"/><NamedIndividual IRI="http://test.org/onto_test.owl#clinical_trial_3"/><NamedIndividual IRI="http://test.org/onto_test.owl#arm_3_2"/></ObjectPropertyAssertion>
-<DataPropertyAssertion><DataProperty IRI="http://test.org/onto_test.owl#has_trial_code"/><NamedIndividual IRI="http://test.org/onto_test.owl#clinical_trial_3"/><Literal datatypeIRI="&xsd;string">3</Literal></DataPropertyAssertion>
 
 <ClassAssertion><Class IRI="http://test.org/onto_test.owl#Arm"/><NamedIndividual IRI="http://test.org/onto_test.owl#arm_3_1"/></ClassAssertion>
 <ClassAssertion>
@@ -200,8 +200,8 @@
 <ObjectAllValuesFrom><ObjectProperty IRI="http://test.org/onto_test.owl#prescribed_to_arm"/>
 <ObjectOneOf><NamedIndividual IRI="http://test.org/onto_test.owl#arm_3_1"/></ObjectOneOf></ObjectAllValuesFrom><NamedIndividual IRI="http://test.org/onto_test.owl#drug_intervention_3_1"/></ClassAssertion>
 <DataPropertyAssertion><DataProperty IRI="http://test.org/onto_test.owl#has_daily_dose"/><NamedIndividual IRI="http://test.org/onto_test.owl#drug_intervention_3_1"/><Literal datatypeIRI="&xsd;decimal">100.0</Literal></DataPropertyAssertion>
-<ObjectPropertyAssertion><ObjectProperty IRI="http://test.org/onto_test.owl#prescribed_to_arm"/><NamedIndividual IRI="http://test.org/onto_test.owl#drug_intervention_3_1"/><NamedIndividual IRI="http://test.org/onto_test.owl#arm_3_1"/></ObjectPropertyAssertion>
 <DataPropertyAssertion><DataProperty IRI="http://test.org/onto_test.owl#has_drug"/><NamedIndividual IRI="http://test.org/onto_test.owl#drug_intervention_3_1"/><Literal datatypeIRI="&xsd;string">drug_A</Literal></DataPropertyAssertion>
+<ObjectPropertyAssertion><ObjectProperty IRI="http://test.org/onto_test.owl#prescribed_to_arm"/><NamedIndividual IRI="http://test.org/onto_test.owl#drug_intervention_3_1"/><NamedIndividual IRI="http://test.org/onto_test.owl#arm_3_1"/></ObjectPropertyAssertion>
 
 <ClassAssertion><Class IRI="http://test.org/onto_test.owl#Arm"/><NamedIndividual IRI="http://test.org/onto_test.owl#arm_3_2"/></ClassAssertion>
 <ClassAssertion>
@@ -212,7 +212,7 @@
 
 <ClassAssertion><Class IRI="http://test.org/onto_test.owl#PlaceboDrugIntervention"/><NamedIndividual IRI="http://test.org/onto_test.owl#drug_intervention_3_2"/></ClassAssertion>
 <DataPropertyAssertion><DataProperty IRI="http://test.org/onto_test.owl#has_daily_dose"/><NamedIndividual IRI="http://test.org/onto_test.owl#drug_intervention_3_2"/><Literal datatypeIRI="&xsd;decimal">100.0</Literal></DataPropertyAssertion>
-<ObjectPropertyAssertion><ObjectProperty IRI="http://test.org/onto_test.owl#prescribed_to_arm"/><NamedIndividual IRI="http://test.org/onto_test.owl#drug_intervention_3_2"/><NamedIndividual IRI="http://test.org/onto_test.owl#arm_3_2"/></ObjectPropertyAssertion>
 <DataPropertyAssertion><DataProperty IRI="http://test.org/onto_test.owl#has_drug"/><NamedIndividual IRI="http://test.org/onto_test.owl#drug_intervention_3_2"/><Literal datatypeIRI="&xsd;string">placebo</Literal></DataPropertyAssertion>
+<ObjectPropertyAssertion><ObjectProperty IRI="http://test.org/onto_test.owl#prescribed_to_arm"/><NamedIndividual IRI="http://test.org/onto_test.owl#drug_intervention_3_2"/><NamedIndividual IRI="http://test.org/onto_test.owl#arm_3_2"/></ObjectPropertyAssertion>
 
 </Ontology>
