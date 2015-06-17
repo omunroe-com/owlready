@@ -20,14 +20,10 @@ Owlready can:
    `Editobj3 <http://www.lesfleursdunormal.fr/static/informatique/editobj/index_en.html>`_.
 
 
-Owlready has been created by Jean-Baptiste Lamy.
+Owlready has been created by Jean-Baptiste Lamy at the LIMICS reseach lab.
 It is available under the GNU LGPL licence v3.
-
-Owlready has been created at the LIMICS reseach lab,
-University Paris 13, Sorbonne Paris Cité, INSERM UMRS 1142, Paris 6 University, by
-Jean-Baptiste Lamy.
-
-In case of trouble, please contact Jean-Baptiste Lamy <jean-baptiste.lamy *@* univ-paris13 *.* fr>
+In case of trouble, please contact Jean-Baptiste Lamy
+<jean-baptiste.lamy *@* univ-paris13 *.* fr>
 
 ::
 
