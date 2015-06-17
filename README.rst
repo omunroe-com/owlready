@@ -1,24 +1,22 @@
 Owlready
 ========
 
-Owlready (previously named Ontopy) is a module for ontology-oriented programming in Python: load OWL 2.0 ontologies
-as Python objects, modify them, save to OWL XML, and perform reasoning via HermiT
-(included). Owlready allows a transparent access to OWL ontologies (contrary
-to usual Java-based API).
+**Owlready** (previously named Ontopy) is a module for ontology-oriented programming in Python 3.
 
 Owlready can:
 
- - Import OWL 2.0 OWL/XML ontologies (other file formats are not yet supported).
+ - Import and export OWL 2.0 ontologies in the OWL/XML format
+   (other file formats are not yet supported).
 
- - Manipulates ontology entities as if they were Python objects.
+ - Manipulates ontology classes, instances and properties transparently,
+   as if they were normal Python objects.
 
- - Add methods to ontology classes.
+ - Add Python methods to ontology classes.
 
- - Re-classify instances automatically with the HermiT reasoner.
+ - Perform automatic classification of classes and instances, using the HermiT reasoner.
 
- - Automatically generate dialog boxes for editing ontology instances, using
-   `Editobj3 <http://www.lesfleursdunormal.fr/static/informatique/editobj/index_en.html>`_.
-
+ - Automatically generate dialog boxes for editing ontology instances,
+   using `Editobj3 <http://www.lesfleursdunormal.fr/static/informatique/editobj/index_en.html>`_.
 
 Owlready has been created by Jean-Baptiste Lamy at the LIMICS reseach lab.
 It is available under the GNU LGPL licence v3.
@@ -87,3 +85,7 @@ Links
 -----
 
 Owlready on BitBucket (development repository): https://bitbucket.org/jibalamy/owlready
+
+Owlready on PyPI (Python Package Index, stable release): https://pypi.python.org/pypi/Owlready
+
+Documentation: http://pythonhosted.org/Owlready
