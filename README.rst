@@ -1,7 +1,7 @@
 Owlready
 ========
 
-Owlready is a module for ontology-oriented programming in Python: load OWL 2.0 ontologies
+Owlready (previously named Ontopy) is a module for ontology-oriented programming in Python: load OWL 2.0 ontologies
 as Python objects, modify them, save to OWL XML, and perform reasoning via HermiT
 (included). Owlready allows a transparent access to OWL ontologies (contrary
 to usual Java-based API).
