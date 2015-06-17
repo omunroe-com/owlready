@@ -3,6 +3,7 @@ global-include *.txt
 global-include *.owl
 global-include *.rst
 global-include *.png
+global-include *.svg
 
 graft doc
 graft test
