@@ -57,7 +57,9 @@ Export to OWL/XML file:
 
   >>> onto.save()
   
-  Perform reasoning, and classify instances and classes:
+Perform reasoning, and classify instances and classes:
+
+::
   
   >>> test_pizza.__class__
   onto.Pizza
