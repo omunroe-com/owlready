@@ -30,7 +30,7 @@ import datetime
 JAVA_EXE = "java"
 
 _HERE = os.path.dirname(__file__)
-_HERMIT_CLASSPATH = ":".join([os.path.join(_HERE, "hermit"), os.path.join(_HERE, "hermit", "HermiT.jar")])
+_HERMIT_CLASSPATH = os.pathsep.join([os.path.join(_HERE, "hermit"), os.path.join(_HERE, "hermit", "HermiT.jar")])
 
 
 # For compiling and running HermiT manually:
@@ -235,14 +235,14 @@ class Ontology(object):
     tmp = tempfile.NamedTemporaryFile("w", delete = 0)
     tmp.write(to_owl(self, write_import = 0, rules = rules))
     tmp.close()
-    command = [JAVA_EXE, "-Xmx2000M", "-cp", _HERMIT_CLASSPATH, "org.semanticweb.HermiT.cli.CommandLine", "-c", "-O", "-D", "-I", tmp.name]
+    command = [JAVA_EXE, "-Xmx2000M", "-cp", _HERMIT_CLASSPATH, "org.semanticweb.HermiT.cli.CommandLine", "-c", "-O", "-D", "-I", "file:///%s" % tmp.name.replace('\\','/')]
     if debug:
       import time
       print("* Owlready * Running HermiT...", file = sys.stderr)
       print("    %s" % " ".join(command), file = sys.stderr)
       t0 = time.time()
     output = subprocess.check_output(command)
-    output = output.decode("utf8")
+    output = output.decode("utf8").replace("\r","")
     if debug:
       print("* Owlready * HermiT took %s seconds" % (time.time() - t0))
       if debug > 1:
@@ -449,6 +449,7 @@ class _NameDescriptor(object):
     if isinstance(instance, GeneratedName):
       try: name = instance.generate_name()
       except:
+        print("Error while generating name for %s instance:" % instance.__class__.__name__)
         sys.excepthook(*sys.exc_info())
         name = "__error_while_generating_name_for_%s_instance__" % instance.__class__.__name__
       if name != instance._name:
