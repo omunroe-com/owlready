@@ -83,6 +83,14 @@ Perform reasoning, and classify instances and classes:
 
 For more documentation, look at the doc/ and doc/examples/ directories in the source.
 
+Changelog
+---------
+
+0.2
+***
+
+* Fix sync_reasonner and Hermit call under windows (thanks Clare Grasso)
+
 
 Links
 -----
