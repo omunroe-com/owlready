@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys, os
+import sys, os, warnings
 import xml, xml.sax as sax, xml.sax.handler
 from collections import defaultdict
 
@@ -39,7 +39,7 @@ def _parse_datatype(datatype, s, lang = ""):
   if datatype is datetime.time:      return datetime.datetime.strptime(s, "T%H:%M:%S").time()
   return datatype(s)
 
-class OWLRDFHandler(sax.handler.ContentHandler):
+class OWLXMLHandler(sax.handler.ContentHandler):
   def __init__(self, ontology = None):
     self.objs                   = []
     self.annots                 = []
@@ -50,8 +50,8 @@ class OWLRDFHandler(sax.handler.ContentHandler):
     self.ontologies_to_import   = []
     
   def push_value    (self, value): self.objs.append(value)
-  def push_obj      (self, attrs, type): self.objs.append(self.ontology.get_object(self.get_IRI(attrs), type))
-  def push_anonymous(self, attrs, type): self.objs.append(anonymous.get_object(attrs["nodeID"], type))
+  def push_obj      (self, attrs, type): self.objs.append(self.ontology.get_object(self.get_IRI(attrs), type, self))
+  def push_anonymous(self, attrs, type): self.objs.append(anonymous.get_object(attrs["nodeID"], type, self))
   
   def unabbreviate_IRI(self, abbreviated_iri):
     prefix, name = abbreviated_iri.split(":", 1)
@@ -61,16 +61,15 @@ class OWLRDFHandler(sax.handler.ContentHandler):
     if "IRI" in attrs: return attrs["IRI"]
     return self.unabbreviate_IRI(attrs["abbreviatedIRI"])
   
-  def get_loc(self): return "%s(%s:%s)" % (self._locator.getSystemId(), self._locator.getLineNumber(), self._locator.getColumnNumber())
+  def get_loc(self): return self._locator.getSystemId(), self._locator.getLineNumber(), self._locator.getColumnNumber()
   
   def startElement(self, tag, attrs):
     self.current_content = u""
-    
     if   (tag == "Prefix"): self.prefixes[attrs["name"]] = attrs["IRI"]
     
     elif (tag == "Class"):                                            self.push_obj(attrs, ThingClass)
     elif (tag == "ObjectProperty") or (tag == "DataProperty"):        self.push_obj(attrs, PropertyClass)
-    #elif (tag == "AnnotationProperty"):                               self.push_value(self.get_IRI(attrs))
+      
     elif (tag == "AnnotationProperty"):                               self.push_obj(attrs, AnnotationPropertyClass)
     elif (tag == "NamedIndividual"):                                  self.push_obj(attrs, Thing)
     elif (tag == "Datatype"):                                         self.push_value(owlready._DATATYPES_2_PYTHON[self.get_IRI(attrs)])
@@ -95,7 +94,6 @@ class OWLRDFHandler(sax.handler.ContentHandler):
     elif (tag == "SubClassOf") or (tag == "SubObjectPropertyOf") or (tag == "SubDataPropertyOf") or (tag == "SubAnnotationPropertyOf"):
       parent = self.objs.pop()
       child  = self.objs.pop()
-      #print(self.get_loc(), child, "is_a", parent)
       if isinstance(parent, EntityClass) and issubclass(parent, child): # Cycle detected!
         parent.equivalent_to.append(child)
         child .equivalent_to.append(parent)
@@ -131,10 +129,7 @@ class OWLRDFHandler(sax.handler.ContentHandler):
     elif (tag in _TAG_2_PROP_TYPE):
       prop_type = _TAG_2_PROP_TYPE[tag]
       obj = self.objs.pop()
-      if not issubclass(obj, prop_type):
-        #print ("TYPE", obj, prop_type)
-        obj.is_a.append(prop_type)
-        #print("  ", issubclass(obj, prop_type))
+      if not issubclass(obj, prop_type): obj.is_a.append(prop_type)
       
     elif (tag == "InverseObjectProperties") or (tag == "InverseDataProperties"):
       self.objs.pop().inverse_property = self.objs.pop()
@@ -175,12 +170,12 @@ class OWLRDFHandler(sax.handler.ContentHandler):
     elif (tag == "Import"):
       self.ontology.imported_ontologies.append(get_ontology(self.current_content).load())
       
-    elif (tag == "IRI"): self.push_value(self.ontology.get_object(self.current_content))
+    elif (tag == "IRI"): self.push_value(self.ontology.get_object(self.current_content, None, self))
     
     elif (tag == "AbbreviatedIRI"):
       iri = self.unabbreviate_IRI(self.current_content)
       if iri in owlready._DATATYPES_2_PYTHON: self.push_value(owlready._DATATYPES_2_PYTHON[iri])
-      else:                                 self.push_value(self.ontology.get_object(iri))
+      else:                                   self.push_value(self.ontology.get_object(iri, None, self))
       
     elif (tag == "AnnotationAssertion"):
       ANNOTATIONS[self.objs[-2]].add_annotation((self.objs[-3], self.current_lang), self.objs[-1])
@@ -217,7 +212,6 @@ class OWLRDFHandler(sax.handler.ContentHandler):
       if Prop.is_functional_for(subject): setattr(subject, Prop.python_name, object)
       else:
         values = getattr(subject, Prop.python_name)
-        #print(Prop, subject, object, values)
         if not object in values: getattr(subject, Prop.python_name).append(object)
       
     for instance in self.ontology.instances:
@@ -232,7 +226,7 @@ def fix_mro():
   if owlready._MRO_BROKEN_CLASSES:
     if owlready._MRO_BROKEN_CLASSES == broken_classes: # Nothing fixed => failed!
       print(file = sys.stderr)
-      print("* Owlready * WARNING: Inconsistent MRO for %s! Using a simplified degraded MRO computation algorithm." % ", ".join(Class.__name__ for Class in broken_classes), file = sys.stderr)
+      warnings.warn("Inconsistent MRO for %s! Using a simplified degraded MRO computation algorithm." % ", ".join(Class.__name__ for Class in broken_classes), OwlReadyMROWarning, 4)
     else:
       fix_mro()
   else:
@@ -242,7 +236,7 @@ def parse(f, ontology = None):
   saved_default_onto = owlready.DEFAULT_ONTOLOGY
   owlready.DEFAULT_ONTOLOGY = None
   owlready._MRO_BROKEN_CLASSES = set() # Collect MRO broken classes instead of warning about them
-  handler = OWLRDFHandler(ontology)
+  handler = OWLXMLHandler(ontology)
   parser = sax.make_parser()
   parser.setContentHandler(handler)
   parser.parse(f)

@@ -17,10 +17,10 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-VERSION = "0.2"
+VERSION = "0.3"
 
 
-import sys, os, types, tempfile, subprocess, weakref, re, urllib.request
+import sys, os, types, tempfile, subprocess, weakref, re, urllib.request, warnings
 from io import StringIO
 from collections import defaultdict, OrderedDict
 from xml.sax.saxutils import escape
@@ -32,11 +32,18 @@ JAVA_EXE = "java"
 _HERE = os.path.dirname(__file__)
 _HERMIT_CLASSPATH = os.pathsep.join([os.path.join(_HERE, "hermit"), os.path.join(_HERE, "hermit", "HermiT.jar")])
 
-
 # For compiling and running HermiT manually:
 #   cd /home/jiba/src/owlready/hermit
 #   javac -cp .:HermiT.jar ./org/semanticweb/HermiT/cli/CommandLine.java
 #   java  -cp .:HermiT.jar org.semanticweb.HermiT.cli.CommandLine -c -O -D -I /tmp/t.owl
+
+class OwlReadyWarning               (UserWarning): pass
+class OwlReadyUndefinedIRIWarning   (OwlReadyWarning): pass
+class OwlReadyOntologyIRIWarning    (OwlReadyWarning): pass
+class OwlReadyMROWarning            (OwlReadyWarning): pass
+class OwlReadyGeneratedNameWarning  (OwlReadyWarning): pass
+class OwlReadyDupplicatedNameWarning(OwlReadyWarning): pass
+
 
 class normstr(str): pass
 
@@ -126,32 +133,38 @@ def get_ontology(base_iri):
   if base_iri in ONTOLOGIES: return ONTOLOGIES[base_iri]
   return Ontology(base_iri)
 
-def get_object(iri, type = None):
-  #print("get_object", self.base_iri, iri)
+def get_object(iri, type = None, parser = 2):
   if not iri.startswith("http:") or iri.startswith("file:"): raise ValueError
   if iri in IRIS: return IRIS[iri]
-  if type is None: raise ValueError(iri)
-  
+  if type is None:
+    msg = "Undefined IRI '%s' referenced, OwlReady assumes it is an individual." % iri
+    if isinstance(parser, int):
+      warnings.warn(msg, OwlReadyUndefinedIRIWarning, parser)
+    else:
+      filename, lineno, colno = parser.get_loc()
+      warnings.warn_explicit(msg, OwlReadyUndefinedIRIWarning, filename, lineno)
+    type = Thing
+    
+  attr_dict = {}
   if "#" in iri: base_iri, name = iri.split("#", 1)
-  else:          base_iri, name = iri.rsplit("/", 1)
+  else:          base_iri, name = iri.rsplit("/", 1); attr_dict["owl_separator"] = "/"
   
   self = get_ontology(base_iri)
+  attr_dict["ontology"] = self
   if name.startswith("'") and name.endswith("'"): name = name[1:-1]
-  if   type is ThingClass:              r = ThingClass             (name, (Thing             ,), { "ontology" : self } )
-  elif type is PropertyClass:           r = PropertyClass          (name, (Property          ,), { "ontology" : self } )
-  elif type is AnnotationPropertyClass: r = AnnotationPropertyClass(name, (AnnotationProperty,), { "ontology" : self })
-  elif type is Thing:                   r = Thing                  (name, ontology = self)
-  else: raise ValueError(type)
-  if "#" in iri: owl_separator = "#"
-  else:          owl_separator = "/"
-  if r.owl_separator != owl_separator: r.owl_separator = owl_separator
+  if   type is ThingClass:              r = ThingClass             (name, (Thing             ,), attr_dict)
+  elif type is PropertyClass:           r = PropertyClass          (name, (Property          ,), attr_dict)
+  elif type is AnnotationPropertyClass: r = AnnotationPropertyClass(name, (AnnotationProperty,), attr_dict)
+  elif type is Thing:                   r = Thing                  (name, **attr_dict)
+  else:
+    raise ValueError(type)
   return r
 
 DEFAULT_ONTOLOGY = None
 
 class Ontology(object):
   def __init__(self, base_iri, force_non_dot_owl_iri = False):
-    if base_iri.endswith("/") or base_iri.endswith("#"): raise ValueError
+    if base_iri.endswith("/") or base_iri.endswith("#"): raise ValueError("Ontology IRI must not ends with '/' or '#'; please remove it.")
     self.base_iri              = base_iri
     self.name                  = base_iri.rsplit("/", 1)[-1]
     if self.name.endswith(".owl"): self.name = self.name[:-4]
@@ -165,8 +178,9 @@ class Ontology(object):
     if self.base_iri in ONTOLOGIES: raise ValueError("An ontology named '%s' already exists!" % self.base_iri)
     ONTOLOGIES[self.base_iri]  = IRIS[self.base_iri] = self
     print("* Owlready * Creating new ontology %s <%s>." % (self.name, self.base_iri), file = sys.stderr)
-    if (not base_iri.endswith(".owl")) and (not force_non_dot_owl_iri): raise ValueError
-    
+    if (not base_iri.endswith(".owl")) and (not force_non_dot_owl_iri):
+      warnings.warn("Ontology IRI '%s' does not ends with '.owl' as expected." % base_iri, OwlReadyOntologyIRIWarning, 3)
+      
   def indirectly_imported_ontologies(self):
     ontologies = set([self])
     for ontology in self.imported_ontologies: ontologies.update(ontology.indirectly_imported_ontologies())
@@ -214,12 +228,12 @@ class Ontology(object):
   def instances_of (self, Class): return (instance for instance in self.instances if isinstance(instance, Class))
   def subclasses_of(self, Class): return (klass    for klass    in self.classes   if issubclass(klass   , Class))
   
-  def get_object(self, iri, type = None):
-    #print("get_object", self.base_iri, iri)
-    if iri.startswith("http:") or iri.startswith("file:"): return get_object(iri, type)
-    if iri.startswith("#"): return get_object("%s%s" % (self.base_iri, iri), type)
-    if iri.startswith("/"): return get_object("%s%s" % (self.base_iri, iri), type)
-    return get_object("%s#%s" % (self.base_iri, iri), type)
+  def get_object(self, iri, type = None, parser = None):
+    if not parser: parser = 3
+    if iri.startswith("http:") or iri.startswith("file:"): return get_object(iri, type, parser)
+    if iri.startswith("#"): return get_object("%s%s" % (self.base_iri, iri), type, parser)
+    if iri.startswith("/"): return get_object("%s%s" % (self.base_iri, iri), type, parser)
+    return get_object("%s#%s" % (self.base_iri, iri), type, parser)
   
   def __getattr__(self, attr):
     iri = "%s#%s" % (self.base_iri, attr)
@@ -244,9 +258,9 @@ class Ontology(object):
     output = subprocess.check_output(command)
     output = output.decode("utf8").replace("\r","")
     if debug:
-      print("* Owlready * HermiT took %s seconds" % (time.time() - t0))
+      print("* Owlready * HermiT took %s seconds" % (time.time() - t0), file = sys.stderr)
       if debug > 1:
-        print("* Owlready * HermiT output:")
+        print("* Owlready * HermiT output:", file = sys.stderr)
         print(output, file = sys.stderr)
         
     is_a_relations  = {"SubClassOf", "SubObjectPropertyOf", "SubDataPropertyOf", "Type"}
@@ -427,6 +441,7 @@ class GeneratedName(object):
   def generate_name(self): return "__generated_name__"
 
 def _iri_changed(obj, old_iri, new_iri):
+  if new_iri == "http://purl.obolibrary.org/obo#BFO_0000050": efjozeif
   if IRIS.get(old_iri) is obj: del IRIS[old_iri]
   IRIS[new_iri] = obj
 
@@ -449,7 +464,7 @@ class _NameDescriptor(object):
     if isinstance(instance, GeneratedName):
       try: name = instance.generate_name()
       except:
-        print("Error while generating name for %s instance:" % instance.__class__.__name__)
+        warnings.warn("Error while generating name for %s instance:" % instance.__class__.__name__, OwlReadyWarning, 2)
         sys.excepthook(*sys.exc_info())
         name = "__error_while_generating_name_for_%s_instance__" % instance.__class__.__name__
       if name != instance._name:
@@ -518,7 +533,7 @@ class EntityClass(type):
   def mro(Class):
     try: return type.mro(Class)
     except:
-      if _MRO_BROKEN_CLASSES is None: print("* Owlready * WARNING: Inconsistent MRO for %s! Using a simplified degraded MRO computation algorithm." % Class)
+      if _MRO_BROKEN_CLASSES is None: warnings.warn("* Owlready * Inconsistent MRO for %s! Using a simplified degraded MRO computation algorithm." % Class, OwlReadyMROWarning)
       else:                           _MRO_BROKEN_CLASSES.add(Class)
       mro = [Class]
       for base in Class.__bases__:
@@ -791,7 +806,8 @@ class Thing(metaclass = ThingClass):
       setattr(self, attr, value)
     for superclass in self.is_a: superclass.direct_instances.add(self)
     if not isinstance(self, GeneratedName):
-      self.name = name or self.generate_default_name()
+      if name: self.name = _unique_name(self, name)
+      else:    self.name = self.generate_default_name()
     self.ontology.add(self)
     
   def generate_default_name(self):
@@ -1523,11 +1539,11 @@ class Annotations(object):
     if key is owlready_ontology.python_name:
       if   isinstance(self.obj, PropertyClass):
         del PROPS[old_python_name]
-        if value in PROPS: print(" * Owlready * WARNING: dupplicated Property name '%s'!" % value, file = sys.stderr)
+        if value in PROPS: warnings.warn("Dupplicated Property name '%s'!" % value, OwlReadyDupplicatedNameWarning, 2)
         PROPS[value] = self.obj
       elif isinstance(self.obj, AnnotationPropertyClass):
         del ANNOT_PROPS[old_python_name]
-        if value in PROPS: print(" * Owlready * WARNING: dupplicated AnnotationProperty name '%s'!" % value, file = sys.stderr)
+        if value in PROPS: warnings.warn("Dupplicated AnnotationProperty name '%s'!" % value, OwlReadyDupplicatedNameWarning, 2)
         ANNOT_PROPS[value] = self.obj
       
   def add_annotation(self, key, value):

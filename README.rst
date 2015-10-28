@@ -91,6 +91,13 @@ Changelog
 
 * Fix sync_reasonner and Hermit call under windows (thanks Clare Grasso)
 
+0.3
+***
+
+* Add warnings
+* Accepts ontologies files that do not ends with '.owl'
+* Fix a bug when loading ontologies including concept without a '#' in their IRI
+
 
 Links
 -----
