@@ -263,6 +263,8 @@ class Ontology(object):
         print("* Owlready * HermiT output:", file = sys.stderr)
         print(output, file = sys.stderr)
         
+    print(output, file = open("/tmp/sortie_hermit.txt", "w"))
+        
     is_a_relations  = {"SubClassOf", "SubObjectPropertyOf", "SubDataPropertyOf", "Type"}
     equiv_relations = {"EquivalentClasses", "EquivalentObjectProperties", "EquivalentDataProperties"}
     
@@ -305,6 +307,7 @@ class Ontology(object):
         for parent_eq in parent.equivalent_to:
           if isinstance(parent_eq, ThingClass):
             new.add(parent_eq)
+        
       new.update(old & _TYPES) # Types are not shown by HermiT
       if old == new: continue
       new = _keep_most_specific(new, consider_equivalence = False)
@@ -315,7 +318,7 @@ class Ontology(object):
       for removed in old - new: new_is_a.remove(removed)
       for added   in new - old: new_is_a.append(added)
       child.is_a.reinit(new_is_a)
-
+      
       for child_eq in child.equivalent_to:
         if isinstance(child_eq, ThingClass):
           if debug: print("* Owlready * Reparenting %s (since equivalent):" % child_eq, old, "=>", new, file = sys.stderr)
@@ -592,7 +595,7 @@ class EntityClass(type):
     need_pass = _class_relation_2_python("is_a"         , 0, is_a               , s.class_content, need_pass)
     need_pass = _class_relation_2_python("equivalent_to", 0, Class.equivalent_to, s.class_content, need_pass)
     return need_pass
-
+  
   def descendant_subclasses(Class):
     yield Class
     for subclass in Class.__subclasses__(): yield from subclass.descendant_subclasses()
