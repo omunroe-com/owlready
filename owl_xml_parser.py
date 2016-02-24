@@ -48,6 +48,7 @@ class OWLXMLHandler(sax.handler.ContentHandler):
     self.prefixes               = {}
     self.relations              = []
     self.ontologies_to_import   = []
+    self.current_lang           = None
     
   def push_value    (self, value): self.objs.append(value)
   def push_obj      (self, attrs, type): self.objs.append(self.ontology.get_object(self.get_IRI(attrs), type, self))
@@ -86,6 +87,8 @@ class OWLXMLHandler(sax.handler.ContentHandler):
       self.last_cardinality = int(attrs["cardinality"])
 
     elif (tag == "AnonymousIndividual"): self.push_anonymous(attrs, Thing)
+    
+    elif (tag == "AnnotationAssertion") or (tag == "Annotation"): self.current_lang = None
     
   def endElement(self, tag):
     if   (tag == "Literal"):
