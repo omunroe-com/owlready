@@ -811,6 +811,8 @@ class Thing(metaclass = ThingClass):
     if not isinstance(self, GeneratedName):
       if name: self.name = _unique_name(self, name)
       else:    self.name = self.generate_default_name()
+
+    print(self.name, "in", self.ontology)
     self.ontology.add(self)
     
   def generate_default_name(self):

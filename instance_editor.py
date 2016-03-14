@@ -185,7 +185,7 @@ class OntologyInstanceEditor(editor.EditorTabbedDialog):
   def on_save(self, *args):
     self.ontology.save()
     self.last_undoables = self.undo_stack.undoables[:]
-
+    
   def on_save_as(self, *args):
     filename = self.prompt_save_filename()
     if not filename: return
