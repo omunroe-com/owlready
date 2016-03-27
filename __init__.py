@@ -134,7 +134,7 @@ def get_ontology(base_iri):
   return Ontology(base_iri)
 
 def get_object(iri, type = None, parser = 2):
-  if not iri.startswith("http:") or iri.startswith("file:"): raise ValueError
+  if not (iri.startswith("http:") or iri.startswith("file:")): raise ValueError
   if iri in IRIS: return IRIS[iri]
   if type is None:
     msg = "Undefined IRI '%s' referenced, OwlReady assumes it is an individual." % iri
