@@ -107,3 +107,7 @@ Owlready on BitBucket (development repository): https://bitbucket.org/jibalamy/o
 Owlready on PyPI (Python Package Index, stable release): https://pypi.python.org/pypi/Owlready
 
 Documentation: http://pythonhosted.org/Owlready
+
+Mail me for any comment, problem, suggestion or help !
+
+Jiba -- Jean-Baptiste LAMY -- jibalamy @ free.fr
