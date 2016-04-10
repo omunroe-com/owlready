@@ -13,6 +13,8 @@ graft locale
 include ./LICENSE.txt
 include ./README.rst
 
+exclude .hg
+exclude .hg/*
 
 
 global-exclude *.pyc
