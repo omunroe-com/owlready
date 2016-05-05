@@ -68,11 +68,16 @@ class OWLXMLHandler(sax.handler.ContentHandler):
     self.current_content = u""
     if   (tag == "Prefix"): self.prefixes[attrs["name"]] = attrs["IRI"]
     
-    elif (tag == "Class"):                                            self.push_obj(attrs, ThingClass)
-    elif (tag == "ObjectProperty") or (tag == "DataProperty"):        self.push_obj(attrs, PropertyClass)
+    elif (tag == "Class"):
+      self.push_obj(attrs, ThingClass)
+      if not isinstance(self.objs[-1], ThingClass): raise ValueError("'Punning' detected for %s (there is both a class and an individual with the same IRI); punning is not supported by OwlReady." % self.objs[-1])
       
+    elif (tag == "NamedIndividual"):
+      self.push_obj(attrs, Thing)
+      if not isinstance(self.objs[-1], Thing): raise ValueError("'Punning' detected for %s (there is both a class and an individual with the same IRI); punning is not supported by OwlReady." % self.objs[-1])
+      
+    elif (tag == "ObjectProperty") or (tag == "DataProperty"):        self.push_obj(attrs, PropertyClass)
     elif (tag == "AnnotationProperty"):                               self.push_obj(attrs, AnnotationPropertyClass)
-    elif (tag == "NamedIndividual"):                                  self.push_obj(attrs, Thing)
     elif (tag == "Datatype"):                                         self.push_value(owlready._DATATYPES_2_PYTHON[self.get_IRI(attrs)])
     elif (tag == "Literal"):                                          self.push_value(attrs["datatypeIRI"]); self.current_lang = attrs.get("xml:lang", "")
     
@@ -85,7 +90,7 @@ class OWLXMLHandler(sax.handler.ContentHandler):
          (tag == "DataExactCardinality"  ) or (tag == "DataMinCardinality"  ) or (tag == "DataMaxCardinality"  )):
       self.push_value("(")
       self.last_cardinality = int(attrs["cardinality"])
-
+      
     elif (tag == "AnonymousIndividual"): self.push_anonymous(attrs, Thing)
     
     elif (tag == "AnnotationAssertion") or (tag == "Annotation"): self.current_lang = None
@@ -108,7 +113,9 @@ class OWLXMLHandler(sax.handler.ContentHandler):
     elif (tag == "ClassAssertion"):
       child  = self.objs.pop() # Order is reversed compared to SubClassOf!
       parent = self.objs.pop()
-      assert isinstance(child, Thing)
+      if not isinstance(child, Thing):
+        raise ValueError("%s is not an individual but there is a ClassAssertion with class %s !" % (child, parent))
+        assert False
       child.is_a.append(parent)
       self.purge_annotations((child, owl.is_a, parent))
       

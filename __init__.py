@@ -142,7 +142,7 @@ def get_object(iri, type = None, parser = 2):
       warnings.warn(msg, OwlReadyUndefinedIRIWarning, parser)
     else:
       filename, lineno, colno = parser.get_loc()
-      warnings.warn_explicit(msg, OwlReadyUndefinedIRIWarning, filename, lineno)
+      warnings.warn_explicit(msg, OwlReadyUndefinedIRIWarning, filename or "(unknown file)", lineno)
     type = Thing
     
   attr_dict = {}
