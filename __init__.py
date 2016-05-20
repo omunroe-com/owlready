@@ -63,6 +63,13 @@ def to_owl(self, **kargs):
   else:                                                              self._instance_to_owl(definition, content, **kargs)
   return "%s\n%s" % (definition.getvalue(), content.getvalue())
 
+def to_n3(self, **kargs):
+  definition = StringIO()
+  content    = StringIO()
+  if isinstance(self, EntityClass) or isinstance(self, Restriction): self._class_to_n3   (definition, content, **kargs)
+  else:                                                              self._instance_to_n3(definition, content, **kargs)
+  return "%s\n%s" % (definition.getvalue(), content.getvalue())
+
 def to_python(self):
   serializer = _PythonSerializer()
   if isinstance(self, EntityClass) or isinstance(self, Restriction): self._class_to_python   (serializer)
@@ -112,6 +119,18 @@ class AllDisjoint(object):
         content.write("""<DisjointObjectProperties>%s</DisjointObjectProperties>\n""" % "".join(_owl_name(Class) for Class in self.Entities))
     else:
       content.write("""<DifferentIndividuals>%s</DifferentIndividuals>\n""" % "".join(_owl_name(instance) for instance in self.Entities))
+      
+  def _instance_to_n3(self, definition, content):
+    if   isinstance(self.Entities[0], ThingClass):
+      content.write("""[ a owl:allDisjointClasses""")
+      for Class in self.Entities: content.write(""" ; owl:members %s""" % _n3_name(Class))
+    elif isinstance(self.Entities[0], PropertyClass):
+      content.write("""[ a owl:allDisjointProperties""")
+      for Property in self.Entities: content.write(""" ; owl:members %s""" % _n3_name(Property))
+    else:
+      content.write("""[ a owl:allDifferent""")
+      for instance in self.Entities: content.write(""" ; owl:distinctMembers %s""" % _n3_name(instance))
+    content.write("""].\n""")
       
 AllDistinct = AllDisjoint
 
@@ -389,6 +408,48 @@ class Ontology(object):
       
     if write_header: content.write("""</Ontology>\n""")
     
+  def _instance_to_n3(self, definition, content, write_header = 1, write_import = 1, already_included = None, rules = None):
+    if write_header:
+      definition.write("""@prefix log: <http://www.w3.org/2000/10/swap/log#>.\n""")
+      definition.write("""@prefix math: <http://www.w3.org/2000/10/swap/math#>.\n""")
+      definition.write("""@prefix owl: <http://www.w3.org/2002/07/owl#>.\n""")
+      definition.write("""@prefix xsd: <http://www.w3.org/2001/XMLSchema#>.\n""")
+      definition.write("""@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.\n""")
+      definition.write("""@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.\n""")
+      definition.write("""\n""")
+      #for onto in self.imported_ontologies:
+      #  definition.write("""%s owl:imports \n""" % (onto.name, onto.base_iri))
+      
+      definition.write("""<%s> a owl:Ontology.\n""" % self.base_iri)
+      
+    if write_import:
+      for imported_ontology in self.imported_ontologies:
+        definition.write("""%s owl:imports <%s>.\n""" % imported_ontology.base_iri)
+        
+      #for AProp, annot_value, lang in ANNOTATIONS[self].items():
+      #  definition.write('''\n<Annotation>%s%s</Annotation>\n''' % (_owl_name(AProp), _owl_name(annot_value, lang)))
+      
+    else:
+      if already_included is None: already_included = set([self])
+      for imported_ontology in self.imported_ontologies:
+        if not imported_ontology in already_included:
+          already_included.add(imported_ontology)
+          definition.write(to_n3(imported_ontology, write_header = 0, write_import = 0, already_included = already_included))
+          
+    definition.write("\n")
+    
+    for entity in self.properties + self.classes:
+      entity._class_to_n3(definition, content)
+      
+    for all_disjoint in self.all_disjoints:
+      all_disjoint._instance_to_n3(definition, content)
+      
+    for instance in self.instances:
+      instance._instance_to_n3(definition, content)
+      
+    if rules:
+      for r in rules: content.write("""%s\n""" % r.get_rules())
+    
   def _instance_to_python(self, s):
     s.class_definition.write("""from owlready import *\n\n""")
     s.class_definition.write("""%s = Ontology("%s", imported_ontologies = [%s])\n\n""" % (self.name, self.base_iri, ", ".join(onto.name for onto in self.imported_ontologies)))
@@ -624,6 +685,28 @@ def _class_relation_2_owl(Class, Prop, prop_name, functional, value, f):
     if spc: f.write("%s</%s>\n" % (_owl_name(Class), prop_name))
     else:   f.write("%s%s</%s>\n" % (_owl_name(Class), _owl_name(value), prop_name))
       
+def _class_relation_2_n3(Class, Prop, prop_name, functional, value, f):
+  if not functional:
+    for val in value: _class_relation_2_n3(Class, Prop, prop_name, 1, val, f)
+  elif not value is None:
+    #if ((prop_name == "SubClassOf") or (prop_name == "SubObjectPropertyOf") or (prop_name == "SubDataPropertyOf")) and (value in _TYPES):
+      #spc = 1
+      #prop_name = value.name
+      #if isinstance(Class, PropertyClass):
+      #  if Class._is_data_property(): type = "Data"
+      #  else:                         type = "Object"
+      #  prop_name = prop_name.replace("Propert", "%sPropert" % type)
+    #else: spc = 0
+    
+    f.write("%s %s %s.\n" % (_n3_name(Class), prop_name, _n3_name(value)))
+    
+    #if Prop:
+    #  for AProp, annot_value, lang in ANNOTATIONS[Class, Prop, value].items():
+    #    f.write('''\n<Annotation>%s%s</Annotation>\n''' % (_owl_name(AProp), _owl_name(annot_value, lang)))
+        
+    #if spc: f.write("%s</%s>\n" % (_owl_name(Class), prop_name))
+    #else:   f.write("%s%s</%s>\n" % (_owl_name(Class), _owl_name(value), prop_name))
+      
 def _class_relation_2_python(prop_name, functional, value, f, need_pass):
   if functional:
     if value is None: return need_pass
@@ -667,6 +750,14 @@ class ThingClass(EntityClass):
     _class_relation_2_owl(Class, owl.equivalent_to, "EquivalentClasses", 0, Class.equivalent_to, content)
     for AProp, value, lang in ANNOTATIONS[Class].items():
       content.write('''<AnnotationAssertion>%s<IRI>%s%s%s</IRI>%s</AnnotationAssertion>\n''' % (_owl_name(AProp), Class.ontology.base_iri, Class.owl_separator, Class.name, _owl_name(value, lang)))
+    content.write("\n")
+    
+  def _class_to_n3(Class, definition, content):
+    definition.write("""%s a owl:Class.\n""" % _n3_name(Class))
+    _class_relation_2_n3(Class, owl.is_a         , "rdfs:subClassOf"    , 0, [Parent for Parent in Class.is_a if (not Parent in _IGNORED_ISA) and (isinstance(Parent, EntityClass) or isinstance(Parent, Restriction))], content)
+    _class_relation_2_n3(Class, owl.equivalent_to, "owl:equivalentClass", 0, Class.equivalent_to, content)
+    #for AProp, value, lang in ANNOTATIONS[Class].items():
+    #  content.write('''<AnnotationAssertion>%s<IRI>%s%s%s</IRI>%s</AnnotationAssertion>\n''' % (_owl_name(AProp), Class.ontology.base_iri, Class.owl_separator, Class.name, _owl_name(value, lang)))
     content.write("\n")
     
   def _get_class_possible_relations(Class):
@@ -753,6 +844,22 @@ class PropertyClass(EntityClass):
       content.write('''%s%s</HasKey>\n''' % (_owl_name(Class), _owl_name(Prop)))
     for AProp, value, lang in ANNOTATIONS[Prop].items():
       content.write('''<AnnotationAssertion>%s<IRI>%s%s%s</IRI>%s</AnnotationAssertion>\n''' % (_owl_name(AProp), Prop.ontology.base_iri, Prop.owl_separator, Prop.name, _owl_name(value, lang)))
+    content.write("\n")
+    
+  def _class_to_n3(Prop, definition, content):
+    definition.write("""%s a rdf:Property.\n""" % _n3_name(Prop))
+    _class_relation_2_n3(Prop, owl.is_a         , "rdfs:subPropertyOf"    , 0, [Parent for Parent in Prop.is_a if (not Parent in _IGNORED_ISA) and (isinstance(Parent, EntityClass) or isinstance(Parent, Restriction))], content)
+    _class_relation_2_n3(Prop, owl.equivalent_to, "owl:equivalentProperty", 0, Prop.equivalent_to   , content)
+    _class_relation_2_n3(Prop, None             , "owl:inverseOf"         , 1, Prop.inverse_property, content)
+    _class_relation_2_n3(Prop, owl.domain       , "rdfs:domain"           , 0, Prop.domain          , content)
+    _class_relation_2_n3(Prop, owl.range        , "rdfs:range"            , 0, Prop.range           , content)
+    #for Class in Prop.indexes:
+    #  content.write('''<HasKey>''')
+    #  for AProp, annot_value, lang in ANNOTATIONS[Prop, "indexes", Class].items():
+    #    f.write('''\n<Annotation>%s%s</Annotation>\n''' % (_owl_name(AProp), _owl_name(annot_value, lang)))
+    #  content.write('''%s%s</HasKey>\n''' % (_owl_name(Class), _owl_name(Prop)))
+    #for AProp, value, lang in ANNOTATIONS[Prop].items():
+    #  content.write('''<AnnotationAssertion>%s<IRI>%s%s%s</IRI>%s</AnnotationAssertion>\n''' % (_owl_name(AProp), Prop.ontology.base_iri, Prop.owl_separator, Prop.name, _owl_name(value, lang)))
     content.write("\n")
     
   def domains_indirect(self):
@@ -877,7 +984,6 @@ class Thing(metaclass = ThingClass):
   def _instance_to_owl(self, definition, content):
     definition.write("""<Declaration>%s</Declaration>\n""" % _owl_name(self))
     
-    #_class_relation_2_owl(self, "ClassAssertion", 0, self.is_a, content)
     for Class in self.is_a:
       content.write("<ClassAssertion>")
       for AProp, annot_value, lang in ANNOTATIONS[self, owl.is_a, Class].items():
@@ -890,6 +996,22 @@ class Thing(metaclass = ThingClass):
       
     for AProp, value, lang in ANNOTATIONS[self].items():
       content.write('''<AnnotationAssertion>%s<IRI>%s%s%s</IRI>%s</AnnotationAssertion>\n''' % (_owl_name(AProp), self.ontology.base_iri, self.owl_separator, self.name, _owl_name(value, lang)))
+    content.write("\n")
+    
+  def _instance_to_n3(self, definition, content):
+    definition.write("""%s a owl:Thing.\n""" % _n3_name(self))
+    
+    for Class in self.is_a:
+      content.write("%s a %s.\n" % (_n3_name(self), _n3_name(Class)))
+      #for AProp, annot_value, lang in ANNOTATIONS[self, owl.is_a, Class].items():
+      #  content.write('''\n<Annotation>%s%s</Annotation>\n''' % (_owl_name(AProp), _owl_name(annot_value, lang)))
+      
+    for attr in self._get_relations():
+      Prop = PROPS[attr]
+      _instance_relation_2_n3(self, Prop, self.__dict__[attr], content)
+      
+    #for AProp, value, lang in ANNOTATIONS[self].items():
+    #  content.write('''<AnnotationAssertion>%s<IRI>%s%s%s</IRI>%s</AnnotationAssertion>\n''' % (_owl_name(AProp), self.ontology.base_iri, self.owl_separator, self.name, _owl_name(value, lang)))
     content.write("\n")
     
   def __attrs__(self): # Not Python standard, but used by EditObj
@@ -1120,6 +1242,14 @@ _DATATYPES_2_PYTHON["http://www.w3.org/2001/XMLSchema#dateTime"]               =
 
 _OWL_NAME = {clazz : '''<Datatype IRI="%s"/>''' % iri for (clazz, iri) in _PYTHON_2_DATATYPES.items() }
 
+_N3_NAME = {
+  int     : "xsd:integer",
+  bool    : "xsd:boolean",
+  float   : "xsd:decimal",
+  str     : "xsd:string",
+  normstr : "xsd:normalizedString",
+}
+
 def _owl_object_type(self):
   if   (self is int) or (self is bool) or (self is float) or (self is str): return "Data"
   elif isinstance(self, int) or isinstance(self, bool) or isinstance(self, float) or isinstance(self, str): return "Data"
@@ -1164,6 +1294,18 @@ def _owl_name(self, lang = ""):
   elif isinstance(self, datetime.datetime):    return """<Literal datatypeIRI="&xsd;dateTime">%s</Literal>"""  % self.isoformat()
   elif isinstance(self, datetime.timedelta):   return """<Literal datatypeIRI="&xsd;duration">P%sDT%sS</Literal>"""  % (self.days, self.seconds)
   raise ValueError(self)
+  
+def _n3_name(self, lang = ""):
+  if   self in _N3_NAME: return _N3_NAME[self]
+  elif(isinstance(self, EntityClass) or
+       isinstance(self, Thing)):      return """<%s%s%s>""" % (self.ontology.base_iri, self.owl_separator, escape(self.name))
+  elif isinstance(self, Restriction): return self._restriction_to_n3()
+  elif isinstance(self, bool):        return str(self).lower()
+  elif isinstance(self, int):         return  "%s"  % self
+  elif isinstance(self, float):       return  "%s"  % self
+  elif isinstance(self, normstr):     return '"%s"' % escape(self)
+  elif isinstance(self, str):         return '"%s"' % escape(self)
+  raise ValueError(self)
 
 def _owl_prop_name(self):
   return "%s:%s" % (self.ontology.name, self.name)
@@ -1191,7 +1333,15 @@ def _instance_relation_2_owl(obj, Prop, value, f):
       f.write('''\n<Annotation>%s%s</Annotation>\n''' % (_owl_name(AProp), _owl_name(annot_value, lang)))
     f.write("%s%s%s</%sAssertion>\n" % (_owl_name(Prop), _owl_name(obj), _owl_name(value), prop_type))
     
-
+def _instance_relation_2_n3(obj, Prop, value, f):
+  if (value is None) or (value == ""): return
+  if isinstance(value, list):
+    for val in value: _instance_relation_2_n3(obj, Prop, val, f)
+  else:
+    f.write("%s %s %s.\n" % (_n3_name(obj), _n3_name(Prop), _n3_name(value)))
+    #for AProp, annot_value, lang in ANNOTATIONS[obj, Prop, value].items():
+    #  f.write('''\n<Annotation>%s%s</Annotation>\n''' % (_owl_name(AProp), _owl_name(annot_value, lang)))
+    
 def NOT(x): return ~ x
 
 class Restriction(object):
@@ -1215,10 +1365,10 @@ class OneOfRestriction(Restriction):
     for instance in self.instances: instance._instance_refered_object(l)
     
   def _restriction_to_owl(self):
-    s = """\n<ObjectOneOf>"""
-    for instance in self.instances: s += _owl_name(instance)
-    s += """</ObjectOneOf>"""
-    return s
+    return """\n<ObjectOneOf>%s</ObjectOneOf>""" % "".join(_owl_name(instance) for instance in self.instances)
+    
+  def _restriction_to_n3(self):
+    return """[ owl:oneOf (%s) ]""" % " ".join(_n3_name(instance) for instance in self.instances)
     
   def __repr__(self): return "one_of(%s)" % ", ".join(_python_name(instance) for instance in self.instances)
 one_of = OneOfRestriction
@@ -1241,8 +1391,10 @@ class OperatorRestriction(Restriction):
   def _restriction_to_owl(self):
     type = self._owl_object_type()
     return "\n<%s%s>%s</%s%s>" % (type, self._OWL_TAG, "".join(_owl_name(Class) for Class in self.Classes), type, self._OWL_TAG)
-    #return "\n<Object%s>%s</Object%s>" % (self._OWL_TAG, "".join(_owl_name(Class) for Class in self.Classes), self._OWL_TAG)
     
+  def _restriction_to_n3(self):
+    return "[ %s (%s) ]" % (self._N3_TAG, " ".join(_n3_name(Class) for Class in self.Classes))
+  
   def _referenced(self, s):
     for Class in self.Classes: s.referenced(Class)
   def __repr__(self): return "(%s)" % self._PYTHON_OP.join(_python_name(c) for c in self.Classes)
@@ -1250,6 +1402,7 @@ class OperatorRestriction(Restriction):
 class OrRestriction(OperatorRestriction):
   _PYTHON_OP       = " | "
   _OWL_TAG         = "UnionOf"
+  _N3_TAG          = "owl:unionOf"
   
   def __init__(self, *Classes):
     if len(Classes) < 2: raise ValueError("Need at least 2 elements for OR!")
@@ -1263,6 +1416,7 @@ class OrRestriction(OperatorRestriction):
 class AndRestriction(OperatorRestriction):
   _PYTHON_OP       = " & "
   _OWL_TAG         = "IntersectionOf"
+  _N3_TAG          = "owl:intersectionOf"
   
   def __init__(self, *Classes):
     if len(Classes) < 2: raise ValueError("Need at least 2 elements for AND!")
@@ -1285,6 +1439,9 @@ class NotRestriction(OperatorRestriction):
   
   def _restriction_to_owl(self):
     return "\n<ObjectComplementOf>%s</ObjectComplementOf>" % _owl_name(self.Class)
+    
+  def _restriction_to_n3(self):
+    return "[ owl:complementOf %s ]" % _n3_name(self.Class)
     
   def _referenced(self, s): s.referenced(self.Class)
   
@@ -1360,10 +1517,16 @@ class PropertyValueRestriction(Restriction):
     s += """</%s%s>""" % (prop_type, _TYPE_2_TAG[self.type])
     return s
     
+  def _restriction_to_n3(self):
+    if (self.type == SOME) or (self.type == ONLY) or (self.type == VALUE):
+      return """[ owl:onProperty %s; %s %s ]""" % (_n3_name(self.Prop), _TYPE_2_N3_TAG[self.type], _n3_name(self.Class))
+    else:
+      return """[ owl:onProperty %s; owl:onClass %s; %s %s ]""" % (_n3_name(self.Prop), _n3_name(self.Class), _TYPE_2_N3_TAG[self.type], self.cardinality)
+    
   def _referenced(self, s):
     s.referenced(self.Class)
     s.referenced(self.Prop)
-  
+    
   def __repr__(self):
     if (self.type == "SOME") or (self.type == "ONLY") or (self.type == "VALUE"):
       return """restriction(%s, %s, %s)""" % (self.Prop, self.type, _python_name(self.Class))
@@ -1379,6 +1542,14 @@ _TYPE_2_TAG = {
   MIN     : "MinCardinality",
   MAX     : "MaxCardinality",
   VALUE   : "HasValue",
+  }
+_TYPE_2_N3_TAG = {
+  SOME    : "owl:someValuesFrom",
+  ONLY    : "owl:allValuesFrom",
+  EXACTLY : "owl:cardinality",
+  MIN     : "owl:minCardinality",
+  MAX     : "owl:maxCardinality",
+  VALUE   : "owl:hasValue",
   }
 
 

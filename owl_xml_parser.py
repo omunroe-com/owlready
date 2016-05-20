@@ -95,6 +95,8 @@ class OWLXMLHandler(sax.handler.ContentHandler):
     
     elif (tag == "AnnotationAssertion") or (tag == "Annotation"): self.current_lang = None
     
+    elif (tag == "RDF") or (tag == "rdf:RDF"): raise ValueError("OwlReady does not support OWL/RDF format. Please use OWL/XML.")
+    
   def endElement(self, tag):
     if   (tag == "Literal"):
       self.objs[-1] = _parse_datatype(owlready._DATATYPES_2_PYTHON[self.objs[-1]], self.current_content, self.current_lang)
