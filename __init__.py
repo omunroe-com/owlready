@@ -43,6 +43,7 @@ class OwlReadyOntologyIRIWarning    (OwlReadyWarning): pass
 class OwlReadyMROWarning            (OwlReadyWarning): pass
 class OwlReadyGeneratedNameWarning  (OwlReadyWarning): pass
 class OwlReadyDupplicatedNameWarning(OwlReadyWarning): pass
+class OwlReadyRangelessDataProperty (OwlReadyWarning): pass
 
 
 class normstr(str): pass

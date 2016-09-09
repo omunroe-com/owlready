@@ -49,6 +49,7 @@ class OWLXMLHandler(sax.handler.ContentHandler):
     self.relations              = []
     self.ontologies_to_import   = []
     self.current_lang           = None
+    self.datatype_properties    = set()
     
   def push_value    (self, value): self.objs.append(value)
   def push_obj      (self, attrs, type): self.objs.append(self.ontology.get_object(self.get_IRI(attrs), type, self))
@@ -76,10 +77,11 @@ class OWLXMLHandler(sax.handler.ContentHandler):
       self.push_obj(attrs, Thing)
       if not isinstance(self.objs[-1], Thing): raise ValueError("'Punning' detected for %s (there is both a class and an individual with the same IRI); punning is not supported by OwlReady." % self.objs[-1])
       
-    elif (tag == "ObjectProperty") or (tag == "DataProperty"):        self.push_obj(attrs, PropertyClass)
-    elif (tag == "AnnotationProperty"):                               self.push_obj(attrs, AnnotationPropertyClass)
-    elif (tag == "Datatype"):                                         self.push_value(owlready._DATATYPES_2_PYTHON[self.get_IRI(attrs)])
-    elif (tag == "Literal"):                                          self.push_value(attrs["datatypeIRI"]); self.current_lang = attrs.get("xml:lang", "")
+    elif (tag == "ObjectProperty"):     self.push_obj(attrs, PropertyClass)
+    elif (tag == "DataProperty"):       self.push_obj(attrs, PropertyClass); self.datatype_properties.add(self.objs[-1])
+    elif (tag == "AnnotationProperty"): self.push_obj(attrs, AnnotationPropertyClass)
+    elif (tag == "Datatype"):           self.push_value(owlready._DATATYPES_2_PYTHON[self.get_IRI(attrs)])
+    elif (tag == "Literal"):            self.push_value(attrs["datatypeIRI"]); self.current_lang = attrs.get("xml:lang", "")
     
     elif((tag == "ObjectIntersectionOf") or (tag == "ObjectUnionOf") or (tag == "ObjectOneOf") or
          (tag == "DataIntersectionOf") or (tag == "DataUnionOf") or
@@ -229,6 +231,11 @@ class OWLXMLHandler(sax.handler.ContentHandler):
     for instance in self.ontology.instances:
       if isinstance(instance, GeneratedName): instance.name # Ensure all names are generated properly
       
+    for prop in self.datatype_properties:
+      if not prop.range: 
+        warnings.warn("%s is a range-less DataProperty, this is not supported by OwlReady! Please specify at least a very broad range, such as 'float or int or str'." % prop, OwlReadyRangelessDataProperty, 4)
+      
+    
 def _rindex(l, o): return len(l) - list(reversed(l)).index(o) - 1
 
 def fix_mro():
