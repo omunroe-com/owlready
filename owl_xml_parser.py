@@ -33,7 +33,7 @@ for Prop in owlready._TYPES:
   _TAG_2_PROP_TYPE[Prop.name.replace("Property", "ObjectProperty")] = _TAG_2_PROP_TYPE[Prop.name.replace("Property", "DataProperty")] = Prop
 
 def _parse_datatype(datatype, s, lang = ""):
-  if datatype is bool:      return s.lower() != "false"
+  if datatype is bool:               return s.lower() != "false"
   if datatype is datetime.datetime:  return datetime.datetime.strptime(s, "%Y-%m-%dT%H:%M:%S")
   if datatype is datetime.date:      return datetime.datetime.strptime(s, "%Y-%m-%d").date()
   if datatype is datetime.time:      return datetime.datetime.strptime(s, "T%H:%M:%S").time()

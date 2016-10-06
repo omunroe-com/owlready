@@ -27,6 +27,9 @@ from xml.sax.saxutils import escape
 import datetime
 #from datetime import date, time, datetime, timedelta
 
+try: import pyxb.binding.datatypes
+except: pyxb = None
+
 JAVA_EXE = "java"
 
 _HERE = os.path.dirname(__file__)
@@ -1208,16 +1211,17 @@ _TYPES = { FunctionalProperty, InverseFunctionalProperty, TransitiveProperty, Sy
 _HIDDEN_PROPS = { owl.is_a, owl.equivalent_to } | _TYPES
 
 _PYTHON_2_DATATYPES = {
-  int     : "http://www.w3.org/2001/XMLSchema#integer",
-  bool    : "http://www.w3.org/2001/XMLSchema#boolean",
-  float   : "http://www.w3.org/2001/XMLSchema#decimal",
-  str     : "http://www.w3.org/2001/XMLSchema#string",
-  normstr : "http://www.w3.org/2001/XMLSchema#normalizedString",
+  int                : "http://www.w3.org/2001/XMLSchema#integer",
+  bool               : "http://www.w3.org/2001/XMLSchema#boolean",
+  float              : "http://www.w3.org/2001/XMLSchema#decimal",
+  str                : "http://www.w3.org/2001/XMLSchema#string",
+  normstr            : "http://www.w3.org/2001/XMLSchema#normalizedString",
   datetime.datetime  : "http://www.w3.org/2001/XMLSchema#dateTime",
   datetime.date      : "http://www.w3.org/2001/XMLSchema#date",
   datetime.time      : "http://www.w3.org/2001/XMLSchema#time",
   datetime.timedelta : "http://www.w3.org/2001/XMLSchema#duration",
   }
+
 _DATATYPES_2_PYTHON = { val : key for (key, val) in _PYTHON_2_DATATYPES.items() }
 _DATATYPES_2_PYTHON["http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral"] = str
 _DATATYPES_2_PYTHON["http://www.w3.org/2001/XMLSchema#byte"]                   = int
@@ -1234,12 +1238,21 @@ _DATATYPES_2_PYTHON["http://www.w3.org/2001/XMLSchema#nonPositiveInteger"]     =
 _DATATYPES_2_PYTHON["http://www.w3.org/2001/XMLSchema#positiveInteger"]        = int
 _DATATYPES_2_PYTHON["http://www.w3.org/2001/XMLSchema#double"]                 = float
 _DATATYPES_2_PYTHON["http://www.w3.org/2001/XMLSchema#float"]                  = float
+_DATATYPES_2_PYTHON["http://www.w3.org/2002/07/owl#real"]                      = float
 _DATATYPES_2_PYTHON["http://www.w3.org/2001/XMLSchema#anyURI"]                 = normstr
 _DATATYPES_2_PYTHON["http://www.w3.org/2001/XMLSchema#Name"]                   = normstr
 _DATATYPES_2_PYTHON["http://www.w3.org/2001/XMLSchema#date"]                   = datetime.date
 _DATATYPES_2_PYTHON["http://www.w3.org/2001/XMLSchema#time"]                   = datetime.time
 _DATATYPES_2_PYTHON["http://www.w3.org/2001/XMLSchema#dateTime"]               = datetime.datetime
 #_DATATYPES_2_PYTHON["http://www.w3.org/2001/XMLSchema#duration"]               = datetime.timedelta
+
+if pyxb:
+  for datatype in pyxb.binding.datatypes._PrimitiveDatatypes + pyxb.binding.datatypes._DerivedDatatypes:
+    datatype_name = "http://www.w3.org/2001/XMLSchema#%s" % datatype.__name__
+    if datatype_name in _DATATYPES_2_PYTHON: continue # Builtin / hardcoded datatype
+    _PYTHON_2_DATATYPES[datatype]      = datatype_name
+    _DATATYPES_2_PYTHON[datatype_name] = datatype
+    
 
 _OWL_NAME = {clazz : '''<Datatype IRI="%s"/>''' % iri for (clazz, iri) in _PYTHON_2_DATATYPES.items() }
 
