@@ -85,7 +85,7 @@ state it explicitely using a restriction (see :doc:`restriction`):
 
 ::
 
-   >>> my_acetaminophen_drug.is_a.append(restriction(has_for_active_principle, ONLY, one_of(acetaminophen)))
+   >>> my_acetaminophen_drug.is_a.append(has_for_active_principle(ONLY, one_of(acetaminophen)))
 
 Notice that we used one_of() to 'turn' the acetaminophen Instance into a Class that we can use in the restriction.
 

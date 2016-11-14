@@ -36,15 +36,15 @@ Here is an example creating a 'reasoning-ready' ontology:
    >>> ANNOTATIONS[has_for_active_principle]["python_name"] = "active_principles"
 
    >>> class Placebo(Drug):
-   ...     equivalent_to = [Drug & NOT(restriction(has_for_active_principle, SOME, ActivePrinciple))]
+   ...     equivalent_to = [Drug & NOT(has_for_active_principle(SOME, ActivePrinciple))]
    ...     def take(self): print("I took a placebo")
 
    >>> class SingleActivePrincipleDrug(Drug):
-   ...     equivalent_to = [Drug & restriction(has_for_active_principle, EXACTLY, 1, ActivePrinciple)]
+   ...     equivalent_to = [Drug & has_for_active_principle(EXACTLY, 1, ActivePrinciple)]
    ...     def take(self): print("I took a drug with a single active principle")
 
    >>> class DrugAssociation(Drug):
-   ...     equivalent_to = [Drug & restriction(has_for_active_principle, MIN, 2, ActivePrinciple)]
+   ...     equivalent_to = [Drug & has_for_active_principle(MIN, 2, ActivePrinciple)]
    ...     def take(self): print("I took a drug with %s active principles" % len(self.active_principles))
 
    >>> acetaminophen   = ActivePrinciple("acetaminophen")

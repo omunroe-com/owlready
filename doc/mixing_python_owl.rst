@@ -85,7 +85,7 @@ This can be done with the @forward_declaration decorator:
    # This definition of drug exclude Placebo, and requires the has_for_active_principle Property
    >>> class Drug(Thing):
    ...     ontology = onto
-   ...     is_a = [restriction(has_for_active_principle, SOME, ActivePrinciple)]
+   ...     is_a = [has_for_active_principle(SOME, ActivePrinciple)]
    
    # This is the final declaration of the Property
    >>> class has_for_active_principle(Property):

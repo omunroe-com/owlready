@@ -34,8 +34,8 @@ Create new classes in the ontology, possibly mixing OWL restrictions and Python 
 >>> class NonVegetarianPizza(onto.Pizza):
 ...   equivalent_to = [
 ...     onto.Pizza
-...   & ( restriction("has_topping", SOME, onto.MeatTopping)
-...     | restriction("has_topping", SOME, onto.FishTopping)
+...   & ( onto.has_topping(SOME, onto.MeatTopping)
+...     | onto.has_topping(SOME, onto.FishTopping)
 ...     ) ]
 ...   def eat(self): print("Beurk! I'm vegetarian!")
 

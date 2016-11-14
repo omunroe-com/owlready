@@ -13,7 +13,7 @@ def new_onto():
   NB_ONTO += 1
   return Ontology("http://test.org/onto_%s.owl" % NB_ONTO)
 
-class OntoTest(unittest.TestCase):
+class Test(unittest.TestCase):
   def setUp(self): pass
 
   def test_reasonning_1(self):
@@ -26,7 +26,7 @@ class OntoTest(unittest.TestCase):
       ontology = onto
       domain   = [Pizza]
       range    = [Ingredient]
-
+      
     class Legume   (Ingredient): pass
     class Tomate   (Legume):     pass
     class Aubergine(Legume):     pass
@@ -266,6 +266,297 @@ class OntoTest(unittest.TestCase):
     assert     onto.a_pour_b.is_functional_for(onto.A1)
     assert not onto.a_pour_b.is_functional_for(onto.A2)
     
+  def test_close1(self):
+    onto = new_onto()
+    class O(Thing): ontology = onto
+    class P(Thing): ontology = onto
+    class has_for_p(Property):
+      ontology = onto
+      domain   = [O]
+      range    = [P]
+    o  = O()
+    p1 = P()
+    p2 = P()
+    o.has_for_p = [p1, p2]
+    close_world(o, [has_for_p]) # Specify the property the close, because other test may create additional properties
     
+    restr = [c for c in o.is_a if not c is O][0]
+    assert restr.Prop is has_for_p
+    assert restr.type is ONLY
+    assert isinstance(restr.Class, OneOfRestriction) and set(restr.Class.instances) == {p1, p2}
+    
+  def test_close2(self):
+    onto = new_onto()
+    class O(Thing): ontology = onto
+    class P(Thing): ontology = onto
+    class Q(Thing): ontology = onto
+    class rel(Property):
+      ontology = onto
+      domain   = [O]
+    o1 = O()
+    o2 = O()
+    close_world(O, [rel]) # Specify the property the close, because other test may create additional properties
+    
+    restr = [c for c in O.is_a if isinstance(c, OneOfRestriction)][0]
+    assert set(restr.instances) == { o1, o2 }
+    restr = [c for c in O.is_a if isinstance(c, NotRestriction)][0]
+    restr = restr.Class
+    assert restr.Prop is rel
+    assert restr.type is SOME
+    assert restr.Class is Thing
+    
+  def test_close3(self):
+    onto = new_onto()
+    class O(Thing): ontology = onto
+    class P(Thing): ontology = onto
+    class Q(Thing): ontology = onto
+    class rel(Property):
+      ontology = onto
+      domain   = [O]
+    p1 = P()
+    p2 = P()
+    q1 = Q()
+    O.is_a.append(restriction(rel, VALUE, p1))
+    O.is_a.append(restriction(rel, VALUE, p2))
+    O.is_a.append(restriction(rel, SOME,  Q))
+    close_world(O, [rel]) # Specify the property the close, because other test may create additional properties
+    
+    restr = O.is_a[-1]
+    assert restr.Prop is rel
+    assert restr.type is ONLY
+    assert Q in restr.Class.Classes
+    x = list(restr.Class.Classes)
+    x.remove(Q)
+    x = x[0]
+    assert isinstance(x, OneOfRestriction) and (set(x.instances) == { p1, p2 })
+    #print(O.is_a)
+    
+  def test_close4(self):
+    onto = new_onto()
+    class O(Thing): ontology = onto
+    class P(Thing): ontology = onto
+    class has_for_p(Property):
+      ontology = onto
+      domain   = [O]
+      range    = [P]
+    o  = O()
+    p1 = P()
+    p2 = P()
+    o.is_a.append(has_for_p(SOME, P))
+    close_world(o, [has_for_p]) # Specify the property the close, because other test may create additional properties
+
+    assert o.is_a[-1].Prop is has_for_p
+    assert o.is_a[-1].type is ONLY
+    assert o.is_a[-1].Class is P
+    
+  def test_close5(self):
+    onto = new_onto()
+    class O (Thing): ontology = onto
+    class O2(O):     ontology = onto
+    class P (Thing): ontology = onto
+    class has_for_p(Property):
+      ontology = onto
+      domain   = [O]
+      range    = [P]
+    O.is_a.append(has_for_p(SOME, P))
+    close_world(O2, [has_for_p]) # Specify the property the close, because other test may create additional properties
+    
+    assert O2.is_a[-1].Prop is has_for_p
+    assert O2.is_a[-1].type is ONLY
+    assert O2.is_a[-1].Class is P
+    
+  def test_close6(self):
+    onto = new_onto()
+    class O(Thing): ontology = onto
+    class P(Thing): ontology = onto
+    class has_for_p(Property):
+      ontology = onto
+      domain   = [O]
+      range    = [P]
+    O.is_a.append(has_for_p(SOME, P))
+    o = O()
+    close_world(o, [has_for_p]) # Specify the property the close, because other test may create additional properties
+    
+    assert o.is_a[-1].Prop is has_for_p
+    assert o.is_a[-1].type is ONLY
+    assert o.is_a[-1].Class is P
+    
+  def test_close7(self):
+    onto = new_onto()
+    class O (Thing): ontology = onto
+    class O2(O):     ontology = onto
+    class P (Thing): ontology = onto
+    class has_for_p(Property):
+      ontology = onto
+      domain   = [O]
+      range    = [P]
+    o = O()
+    p = P()
+    O2.is_a.append(has_for_p(SOME, P))
+    o .has_for_p = [p]
+    close_world(O, [has_for_p]) # Specify the property the close, because other test may create additional properties
+    
+    assert repr(O.is_a) == repr([Thing, one_of(o), has_for_p(ONLY, (P | one_of(p)))])
+    
+  def test_is_instance_of(self):
+    onto = new_onto()
+    class O(Thing): ontology = onto
+    class P(Thing): ontology = onto
+    o = O()
+    assert o.is_instance_of == o.is_a
+    
+    o.is_instance_of.append(P)
+    assert o.is_instance_of == o.is_a
+    assert o.is_a == [O, P]
+    
+  def test_class_prop1(self):
+    onto = new_onto()
+    class O(Thing): ontology = onto
+    class rel(Property):
+      ontology = onto
+      domain   = [O]
+      range    = [str]
+    O.is_a.append(restriction(rel, VALUE, "test"))
+    assert O.rel == ["test"]
+    
+  def test_class_prop2(self):
+    onto = new_onto()
+    class O(Thing): ontology = onto
+    class rel(FunctionalProperty):
+      ontology = onto
+      domain   = [O]
+      range    = [str]
+    O.is_a.append(restriction(rel, VALUE, "test"))
+    assert O.rel == "test"
+    
+  def test_class_prop3(self):
+    onto = new_onto()
+    class O(Thing): ontology = onto
+    class rel(FunctionalProperty):
+      ontology = onto
+      domain   = [O]
+      range    = [str]
+    O.rel = "test"
+    
+    assert O.is_a[-1].Prop is rel
+    assert O.is_a[-1].type == VALUE
+    assert O.is_a[-1].Class == "test"
+    
+  def test_class_prop4(self):
+    onto = new_onto()
+    class O(Thing): ontology = onto
+    class rel(Property):
+      ontology = onto
+      domain   = [O]
+      range    = [str]
+    O.rel = "test"
+    
+    O.is_a.append(restriction(rel, VALUE, "a"))
+    O.is_a.append(restriction(rel, VALUE, "b"))
+
+    del O.rel
+    assert O.is_a == [Thing]
+
+  def test_class_prop5(self):
+    onto = new_onto()
+    class O(Thing): ontology = onto
+    class rel(Property):
+      ontology = onto
+      domain   = [O]
+      range    = [str]
+      
+    O.rel = ["a", "b"]
+
+    assert len(O.is_a) == 3
+    assert O.is_a[-2].Prop is rel
+    assert O.is_a[-2].type == VALUE
+    assert O.is_a[-1].Prop is rel
+    assert O.is_a[-1].type == VALUE
+    assert { O.is_a[-2].Class, O.is_a[-1].Class } == { "a", "b" }
+    
+    O.rel = ["a", "c"]
+    
+    assert len(O.is_a) == 3
+    assert O.is_a[-2].Prop is rel
+    assert O.is_a[-2].type == VALUE
+    assert O.is_a[-1].Prop is rel
+    assert O.is_a[-1].type == VALUE
+    assert { O.is_a[-2].Class, O.is_a[-1].Class } == { "a", "c" }
+    
+  def test_class_prop6(self):
+    onto = new_onto()
+    class O(Thing): ontology = onto
+    class rel(Property):
+      ontology = onto
+      domain   = [O]
+      range    = [str]
+      
+    O.rel.append("a")
+    O.rel.append("b")
+    O.rel.append("c")
+    O.rel.remove("b")
+    
+    assert len(O.is_a) == 3
+    assert O.is_a[-2].Prop is rel
+    assert O.is_a[-2].type == VALUE
+    assert O.is_a[-1].Prop is rel
+    assert O.is_a[-1].type == VALUE
+    assert { O.is_a[-2].Class, O.is_a[-1].Class } == { "a", "c" }
+    
+  def test_class_prop7(self):
+    onto = new_onto()
+    class O(Thing): ontology = onto
+    class P(Thing): ontology = onto
+    class rel(FunctionalProperty):
+      ontology = onto
+      domain   = [O]
+      range    = [P]
+    class inv(InverseFunctionalProperty):
+      ontology = onto
+      domain   = [P]
+      range    = [O]
+      inverse_property = rel
+    p = P()
+    O.rel = p
+    
+    assert O.is_a[-1].Prop is rel
+    assert O.is_a[-1].type == VALUE
+    assert O.is_a[-1].Class == p
+    
+    assert len(p.is_a) == 2
+    assert p.is_a[-1].Prop is inv
+    assert p.is_a[-1].type == SOME
+    assert p.is_a[-1].Class is O
+    
+    
+  def test_class_prop8(self):
+    onto = new_onto()
+    class O(Thing): ontology = onto
+    class P(Thing): ontology = onto
+    class rel(Property):
+      ontology = onto
+      domain   = [O]
+      range    = [P]
+    class inv(Property):
+      ontology = onto
+      domain   = [P]
+      range    = [O]
+      inverse_property = rel
+    p = P()
+    O.rel.append(p)
+    
+    assert O.is_a[-1].Prop is rel
+    assert O.is_a[-1].type == VALUE
+    assert O.is_a[-1].Class == p
+
+    assert len(p.is_a) == 2
+    assert p.is_a[-1].Prop is inv
+    assert p.is_a[-1].type == SOME
+    assert p.is_a[-1].Class is O
+    
+    O.rel.remove(p)
+    assert len(O.is_a) == 1
+    assert len(p.is_a) == 1
+      
 if __name__ == '__main__': unittest.main()
   

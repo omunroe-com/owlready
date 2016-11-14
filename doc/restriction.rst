@@ -28,9 +28,9 @@ For example, a Placebo is a Drug with no Active Principle:
 ::
 
    >>> class Placebo(Drug):
-   ...     equivalent_to = [Drug & NOT(restriction(has_for_active_principle, SOME, ActivePrinciple))]
+   ...     equivalent_to = [Drug & NOT(has_for_active_principle(SOME, ActivePrinciple))]
 
-In the example above, 'restriction(has_for_active_principle, SOME, ActivePrinciple)' is the Class of all
+In the example above, 'has_for_active_principle(SOME, ActivePrinciple)' is the Class of all
 objects that have at least one Active Principle. The NOT() function returns the negation of a Class.
 The & operator returns the intersection of two Classes.
 
@@ -39,16 +39,16 @@ Another example: an Association Drug is a Drug that associates two or more Activ
 ::
 
    >>> class DrugAssociation(Drug):
-   ...     equivalent_to = [Drug & restriction(has_for_active_principle, MIN, 2, ActivePrinciple)]
+   ...     equivalent_to = [Drug & has_for_active_principle(MIN, 2, ActivePrinciple)]
 
 Owlready provides the following types of restrictions (they have the same names than in Protégé):
 
- * some : restriction(Property Class, SOME, Range Class)
- * only : restriction(Property Class, ONLY, Range Class)
- * min : restriction(Property Class, MIN, cardinality, Range Class)
- * max : restriction(Property Class, MAX, cardinality, Range Class)
- * exactly : restriction(Property Class, EXACTLY, cardinality, Range Class)
- * value : restriction(Property Class, VALUE, Range Instance)
+ * some : property(SOME, Range Class)
+ * only : property(ONLY, Range Class)
+ * min : property(MIN, cardinality, Range Class)
+ * max : property(MAX, cardinality, Range Class)
+ * exactly : property(EXACTLY, cardinality, Range Class)
+ * value : property(VALUE, Range Instance)
 
 
 Class operators
@@ -61,8 +61,8 @@ Owlready provides the following operators between Classes (normal Classes but al
  * NOT() : not operator (negation). For example: NOT(Class1)
 
 
-One Of restrictions
--------------------
+One-Of constructs
+-----------------
 
 In ontologies, a 'One Of' statement is used for defining a Class by extension, *i.e.* by listing its Instances
 rather than by defining its properties.

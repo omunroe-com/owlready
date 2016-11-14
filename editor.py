@@ -393,7 +393,7 @@ class ValuesLister(object):
     #new_instances_of = [introsp.NewInstanceOf(Class, lambda subject, Class = Class: Class(ontology = subject.ontology)) for Class in available_classes if (not _get_class_one_of(Class)) and (not _is_abstract_class(Class))]
     existent_values = set()
     for Class in available_classes:
-      existent_values.update(Class.direct_instances)
+      existent_values.update(Class._direct_instances)
     if excluded_classes:
       excluded_classes = tuple(excluded_classes)
       existent_values = [o for o in existent_values if not isinstance(o, excluded_classes)]

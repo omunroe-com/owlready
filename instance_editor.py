@@ -35,7 +35,7 @@ class EditedInstances(object):
     self.name      = editobj3.TRANSLATOR(Class.name.replace("_", " "))
     #self.compute_instances()
     #for Class in self.class_and_descendant_classes():
-    #  observe(Class.direct_instances, self._listener)
+    #  observe(Class._direct_instances, self._listener)
     
   #def _listener(self, o, type, new, old):
   #  self.compute_instances()

@@ -732,10 +732,10 @@ def _class_relation_2_python(prop_name, functional, value, f, need_pass):
 class ThingClass(EntityClass):
   def __init__(Class, name, bases, obj_dict, ontology = None):
     super().__init__(name, bases, obj_dict)
-    Class.direct_instances = weakref.WeakSet()
+    Class._direct_instances = weakref.WeakSet()
     
   def instances(Class):
-    for instance in Class.direct_instances: yield instance
+    for instance in Class._direct_instances: yield instance
     for subclass in Class.__subclasses__():
       for instance in subclass.instances(): yield instance
       
@@ -773,15 +773,83 @@ class ThingClass(EntityClass):
       else:
         Props.append(Prop)
     return Props
-    
+
   def _refered_object(self, l):
     if self in l: return
     l.add(self)
     for Class in self.is_a:
       if isinstance(Class, ThingClass): Class._refered_object(l)
     for Class in self.equivalent_to: Class._refered_object(l)
+
+
+  # Role-fillers as class properties
+
+  def _get_prop_for_self(self, attr):
+    Prop = PROPS.get(attr)
+    if Prop is None: raise AttributeError("'%s' property is not defined." % attr)
+    for domain in Prop.domain:
+      if not domain._satisfied_by(self): raise AttributeError("'%s' property has incompatible domain for %s." % (attr, self))
+    return Prop
     
+  def __getattr__(self, attr):
+    Prop = self._get_prop_for_self(attr)
+    functional = Prop.is_functional_for(self)
     
+    if functional:
+      for r in _ancestor_property_value_restrictions(self, Prop):
+        if (r.type == VALUE): return r.Class
+      return Prop.get_default_value(self)
+    else:
+      values = []
+      for r in _ancestor_property_value_restrictions(self, Prop):
+        if (r.type == VALUE): values.append(r.Class)
+      return _CallbackList(values, self, "_on_class_prop_changed", Prop)
+    
+  def _on_class_prop_changed(self, new, Prop, old):
+    if Prop._is_data_property(): Inverse = None
+    else:                        Inverse = Prop.inverse_property
+    
+    previous = set(old)
+    news     = set(new)
+    removed = previous - news
+    added   = news - previous
+    for r in list(_ancestor_property_value_restrictions(self, Prop)):
+      if (r.type == VALUE):
+        if (r.Class in removed) and (r in self.is_a):
+          self.is_a.remove(r)
+          if Inverse:
+            for r2 in r.Class.is_a:
+              if isinstance(r2, PropertyValueRestriction) and (r2.Prop is Inverse) and (r2.type == SOME) and (r2.Class is self):
+                r.Class.is_a.remove(r2)
+                break
+    for v in added:
+      self.is_a.append(restriction(Prop, VALUE, v))
+      if Inverse: v.is_a.append(Inverse(SOME, self))
+      
+  def __setattr__(self, attr, value):
+    if attr in _SPECIAL_ATTRS:
+      super().__setattr__(attr, value)
+      return
+    
+    Prop       = self._get_prop_for_self(attr)
+    functional = Prop.is_functional_for(self)
+    
+    if functional:
+      if value is None: self._on_class_prop_changed([],      Prop, getattr(self, attr) or [])
+      else:             self._on_class_prop_changed([value], Prop, getattr(self, attr) or [])
+    else:
+      self._on_class_prop_changed(value, Prop, getattr(self, attr))
+      
+  def __delattr__(self, attr):
+    if attr in _SPECIAL_ATTRS:
+      super().__delattr__(attr)
+      return
+    
+    Prop = self._get_prop_for_self(attr)
+    self._on_class_prop_changed([], Prop, getattr(self, attr))
+        
+    
+  
 class PropertyClass(EntityClass):
   def __init__(Prop, name, bases, obj_dict, ontology = None):
     super().__init__(name, bases, obj_dict)
@@ -902,7 +970,7 @@ class AnnotationPropertyClass(EntityClass):
       if isinstance(parent_prop, PropertyAnnotationClass):
         for domain in parent_prop.domain: yield domain
 
-_SPECIAL_ATTRS = { "name", "_name", "ontology", "is_a", "_old_is_a", "__class__", "owl_separator" }
+_SPECIAL_ATTRS = {"ontology",  "name", "_name", "owl_separator", "is_a", "_old_is_a", "equivalent_to", "_direct_instances", "__class__", "__module__", "__doc__", "__bases__" }
 
 class Thing(metaclass = ThingClass):
   owl_separator = "#"
@@ -918,19 +986,23 @@ class Thing(metaclass = ThingClass):
       self.__dict__["is_a"] = _CallbackList([self.__class__], self, "_instance_is_a_changed", "isa")
     for attr, value in kargs.items():
       setattr(self, attr, value)
-    for superclass in self.is_a: superclass.direct_instances.add(self)
+    for superclass in self.is_a: superclass._direct_instances.add(self)
     if not isinstance(self, GeneratedName):
       if name: self.name = _unique_name(self, name)
       else:    self.name = self.generate_default_name()
     self.ontology.add(self)
     
+  def _get_is_instance_of(self):    return self.is_a
+  def _set_is_instance_of(self, v): self.is_a = v
+  is_instance_of = property(_get_is_instance_of, _set_is_instance_of)
+  
   def generate_default_name(self):
     Class  = self.is_a[0]
     return _unique_name(self, Class.name.lower(), True)
   
   def _instance_is_a_changed(self, is_a, Prop, old):
     for superclass in old:
-      if isinstance(superclass, ThingClass): superclass.direct_instances.discard(self)
+      if isinstance(superclass, ThingClass): superclass._direct_instances.discard(self)
     if Thing in self.is_a: self.is_a._remove(Thing)
     #if not self.is_a: self.is_a._set([Thing])
     bases = [base for base in self.is_a if not isinstance(base, Restriction)]
@@ -942,7 +1014,7 @@ class Thing(metaclass = ThingClass):
     else: # Multi-class object
       self.__class__ = _FusionClass._get_fusion_class(*bases)
     for superclass in self.is_a:
-      if isinstance(superclass, ThingClass): superclass.direct_instances.add(self)
+      if isinstance(superclass, ThingClass): superclass._direct_instances.add(self)
       
   #def _get_relations(self): return { relation for relation in self.__dict__.keys() if (not relation in _SPECIAL_ATTRS) and (not relation.startswith("_")) }
   def _get_relations(self): return { relation for relation in self.__dict__.keys() if (not relation in _SPECIAL_ATTRS) and relation in PROPS }
@@ -953,10 +1025,9 @@ class Thing(metaclass = ThingClass):
       if Prop in _HIDDEN_PROPS: continue
       all_domains = set(Prop.domains_indirect())
       if ignore_domainless_properties and (not all_domains):
-        for restrict in _ancestor_property_value_restrictions(self):
-          if restrict.Prop is Prop:
-            Props.append(Prop)
-            break
+        for restrict in _ancestor_property_value_restrictions(self, Prop):
+          Props.append(Prop)
+          break
       else:
         for domain in all_domains:
           if not domain._satisfied_by(self): break
@@ -1080,17 +1151,7 @@ class Thing(metaclass = ThingClass):
     for added   in new - old:
       add_relation(added, Prop.inverse_property, self)
       
-  def closed_world(self, Properties = None):
-    if Properties is None:
-      Properties = (Prop for Prop in self._get_instance_possible_relations() if (not Prop._is_data_property()) and (not Prop in _HIDDEN_PROPS))
-      
-    for Prop in Properties:
-      value = get_relations(self, Prop)
-      if not value:
-        self.is_a.append(NOT(restriction(Prop, SOME, Thing)))
-      elif issubclass(Prop, FunctionalProperty): pass
-      else:
-        self.is_a.append(restriction(Prop, ONLY, one_of(*value)))
+  def closed_world(self, Properties = None): close_world(self, Properties) # For backward compatibility
 
 
 
@@ -1099,12 +1160,13 @@ def has_relation(subject, Prop, object):
   if Prop.is_functional_for(subject): return getattr(subject, Prop.python_name) == object
   else:                               return object in getattr(subject, Prop.python_name)
   
-def _ancestor_property_value_restrictions(clazz):
-  for restrict in clazz.is_a:
-    if isinstance(restrict, PropertyValueRestriction): yield restrict
+def _ancestor_property_value_restrictions(clazz, Prop):
+  for restrict in (clazz.is_a + clazz.equivalent_to):
+    if isinstance(restrict, PropertyValueRestriction) and (restrict.Prop is Prop):
+      yield restrict
     if isinstance(restrict, AndRestriction):
-      for clazz2 in restrict.Classes: yield from _ancestor_property_value_restrictions(clazz2)
-    if isinstance(restrict, EntityClass): yield from _ancestor_property_value_restrictions(restrict)
+      for clazz2 in restrict.Classes: yield from _ancestor_property_value_restrictions(clazz2, Prop)
+    if isinstance(restrict, EntityClass): yield from _ancestor_property_value_restrictions(restrict, Prop)
     
 def get_relations(subject, Prop):
   Props = set(Prop.descendant_subclasses())
@@ -1146,9 +1208,9 @@ class Property(metaclass = PropertyClass):
       elif (int   in Prop.range): return 0
       elif (float in Prop.range): return 0.0
       elif (bool  in Prop.range): return False
-    for restrict in _ancestor_property_value_restrictions(instance):
+    for restrict in _ancestor_property_value_restrictions(instance, Prop):
       if restrict.type == ONLY:
-        if   (str   is restrict.Class) or (normstr in Prop.range): return ""
+        if   (str   is restrict.Class) or (normstr is restrict.Class): return ""
         elif (int   is restrict.Class): return 0
         elif (float is restrict.Class): return 0.0
         elif (bool  is restrict.Class): return False
@@ -1159,12 +1221,11 @@ class Property(metaclass = PropertyClass):
     # XXX cache the results
     ranges  = set(Prop.range)
     singles = set()
-    for restrict in _ancestor_property_value_restrictions(o):
-      if restrict.Prop is Prop:
-        if     restrict.type == ONLY:
-          ranges.add(restrict.Class)
-        elif ((restrict.type == EXACTLY) or (restrict.type == MAX)) and (restrict.cardinality == 1):
-          singles.add(restrict.Class)
+    for restrict in _ancestor_property_value_restrictions(o, Prop):
+      if     restrict.type == ONLY:
+        ranges.add(restrict.Class)
+      elif ((restrict.type == EXACTLY) or (restrict.type == MAX)) and (restrict.cardinality == 1):
+        singles.add(restrict.Class)
     return not ranges.isdisjoint(singles)
     
 class FunctionalProperty(Property):
@@ -1543,9 +1604,9 @@ class PropertyValueRestriction(Restriction):
     
   def __repr__(self):
     if (self.type == "SOME") or (self.type == "ONLY") or (self.type == "VALUE"):
-      return """restriction(%s, %s, %s)""" % (self.Prop, self.type, _python_name(self.Class))
+      return """%s(%s, %s)""" % (self.Prop, self.type, _python_name(self.Class))
     else:
-      return """restriction(%s, %s, %s, %s)""" % (self.Prop, self.type, self.cardinality, _python_name(self.Class))
+      return """%s(%s, %s, %s)""" % (self.Prop, self.type, self.cardinality, _python_name(self.Class))
       
 restriction = PropertyValueRestriction
 
@@ -1794,6 +1855,69 @@ class _FusionClass(ThingClass):
     return fusion_class
 
 
+def close_world(self, Properties = None, close_instance_list = True, recursive = True):
+  if isinstance(self, Thing): # An instance
+    if Properties is None:
+      Properties2 = (Prop for Prop in self._get_instance_possible_relations() if (not Prop._is_data_property()) and (not Prop in _HIDDEN_PROPS))
+    else:
+      Properties2 = Properties
+      
+    for Prop in Properties2:
+      range_instances = get_relations(self, Prop)
+      range_classes = []
+      for r in _ancestor_property_value_restrictions(self, Prop):
+        if (r.type == SOME): range_classes.append(r.Class)
+      if range_instances: range_classes.append(one_of(*range_instances))
+      
+      if not range_classes:                      self.is_a.append(NOT(restriction(Prop, SOME, Thing)))
+      elif issubclass(Prop, FunctionalProperty): pass
+      elif len(range_classes) == 1:              self.is_a.append(restriction(Prop, ONLY, range_classes[0]))
+      else:                                      self.is_a.append(restriction(Prop, ONLY, OrRestriction(*range_classes)))
+      
+  else: # A class
+    if close_instance_list:
+      instances = list(self.instances())
+      if instances: self.is_a.append(one_of(*instances))
+      
+    if Properties is None:
+      Properties2 = (Prop for Prop in self._get_class_possible_relations() if (not Prop._is_data_property()) and (not Prop in _HIDDEN_PROPS))
+    else:
+      Properties2 = Properties
+      
+    instances  = set(self.instances())
+    subclasses = set(self.descendant_subclasses())
+    
+    for Prop in Properties2:
+      range_instances = []
+      range_classes = []
+      for subclass in subclasses: # subclasses includes self
+        for r in _ancestor_property_value_restrictions(subclass, Prop):
+          if   r.type is VALUE:
+            range_instances.append(r.Class)
+          elif (r.type is SOME) or ((r.type is EXACTLY) and r.cardinality >= 1) or ((r.type is MIN) and r.cardinality >= 1):
+            if isinstance(r.Class, OneOfRestriction): range_instances.extend(r.Class.instances)
+            else: range_classes.append(r.Class)
+
+      for instance in instances:
+        range_instances += get_relations(instance, Prop)
+        for r in _ancestor_property_value_restrictions(instance, Prop):
+          if (r.type == SOME): range_classes.append(r.Class)
+          
+        
+      if range_instances: range_classes.append(one_of(*range_instances))
+      if   len(range_classes) == 1: self.is_a.append(restriction(Prop, ONLY, range_classes[0]))
+      elif range_classes:           self.is_a.append(restriction(Prop, ONLY, OrRestriction(*range_classes)))
+      else:                         self.is_a.append(NOT(restriction(Prop, SOME, Thing)))
+      
+    if recursive:
+      subclasses.discard(self)
+      for subclass in subclasses: close_world(subclass, Properties, close_instance_list, False)
+      for instance in instances:  close_world(instance, Properties, close_instance_list, False)
+        
+def partition(mother, *children):
+  mother.is_a.append(OrRestriction(*children))
+  AllDisjoint(*children)
+  
 OWLREADY_ONTOLOGY_IRI = "http://www.lesfleursdunormal.fr/static/_downloads/owlready_ontology.owl"
 
 onto_path.insert(0, os.path.dirname(__file__))
