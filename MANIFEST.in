@@ -16,6 +16,7 @@ include ./README.rst
 exclude .hg
 exclude .hg/*
 
+exclude doc/examples/contraindications.py
 
 global-exclude *.pyc
 global-exclude *.pyo

@@ -57,9 +57,9 @@ Here is an example creating a 'reasoning-ready' ontology:
    >>> drug2 = Drug(active_principles = [amoxicillin, clavulanic_acid])
    >>> drug3 = Drug(active_principles = [])
 
-   >>> drug1.closed_world()
-   >>> drug2.closed_world()
-   >>> drug3.closed_world()
+   >>> close_world(drug1)
+   >>> close_world(drug2)
+   >>> close_world(drug3)
 
 
 Running the reasoner

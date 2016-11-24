@@ -90,14 +90,14 @@ state it explicitely using a restriction (see :doc:`restriction`):
 Notice that we used one_of() to 'turn' the acetaminophen Instance into a Class that we can use in the restriction.
 
 You'll quickly find that the open world assumption often leads to tedious and long lists
-of AllDistincts and Restrictions. Hopefully, Owlready provides the .closed_world() method for automatically
-'closing' an instance. .closed_world() will automatically add ONLY restriction as needed; it accepts an
+of AllDistincts and Restrictions. Hopefully, Owlready provides the close_world() function for automatically
+'closing' an instance. close_world() will automatically add ONLY restriction as needed; it accepts an
 optional parameter: a list of the Properties to 'close' (defaults to all Properties whose domain is
 compatible with the Instance).
 
 ::
 
-   >>> my_acetaminophen_drug.closed_world()
+   >>> close_world(my_acetaminophen_drug)
 
 If you want to close the whole world, this can be done as following:
 
@@ -105,4 +105,7 @@ If you want to close the whole world, this can be done as following:
 
    >>> onto.add(AllDistinct(*onto.instances))
    >>> for instance in onto.instances:
-   ...     instance.closed_world()
+   ...     close_world(instance)
+
+  
+   

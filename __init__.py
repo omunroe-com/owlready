@@ -48,7 +48,58 @@ class OwlReadyGeneratedNameWarning  (OwlReadyWarning): pass
 class OwlReadyDupplicatedNameWarning(OwlReadyWarning): pass
 class OwlReadyRangelessDataProperty (OwlReadyWarning): pass
 
-
+def unload_all_ontologies():
+  global onto_path
+  onto_path = []
+  global ONTOLOGIES
+  keys_ONTOLOGIES = {u'http://anonymous',u'http://www.lesfleursdunormal.fr/static/_downloads/owlready_ontology.owl',u'http://www.w3.org/1999/02/22-rdf-syntax-ns',u'http://www.w3.org/2000/01/rdf-schema',u'http://www.w3.org/2001/XMLSchema',u'http://www.w3.org/2002/07/owl'}
+  del_key=[]
+  for key in ONTOLOGIES:
+    if key not in keys_ONTOLOGIES:
+      del_key.append(key)
+  for key in del_key: del ONTOLOGIES[key]
+  global IRIS
+  keys_IRIS = {
+    u'http://www.w3.org/2000/01/rdf-schema#seeAlso',
+    u'http://www.w3.org/2002/07/owl#range',
+    u'http://anonymous',
+    u'http://www.w3.org/1999/02/22-rdf-syntax-ns',
+    u'http://www.lesfleursdunormal.fr/static/_downloads/owlready_ontology.owl#python_name',
+    u'http://www.lesfleursdunormal.fr/static/_downloads/owlready_ontology.owl',
+    u'http://www.lesfleursdunormal.fr/static/_downloads/owlready_ontology.owl#python_module',
+    u'http://www.w3.org/2002/07/owl#domain',
+    u'http://www.w3.org/2002/07/owl',
+    u'http://www.w3.org/2002/07/owl#ReflexiveProperty',
+    u'http://www.w3.org/2002/07/owl#IrreflexiveProperty',
+    u'http://www.w3.org/2002/07/owl#versionInfo',
+    u'http://www.w3.org/2002/07/owl#backwardCompatibleWith',
+    u'http://www.w3.org/2002/07/owl#Property',
+    u'http://www.w3.org/2002/07/owl#SymmetricProperty',
+    u'http://www.w3.org/2002/07/owl#Nothing',
+    u'http://www.w3.org/2000/01/rdf-schema#isDefinedBy',
+    u'http://www.w3.org/2002/07/owl#equivalent_to',
+    u'http://www.w3.org/2002/07/owl#FunctionalProperty',
+    u'http://www.w3.org/2002/07/owl#InverseFunctionalProperty',
+    u'http://www.w3.org/2002/07/owl#is_a',
+    u'http://www.w3.org/2000/01/rdf-schema#label',
+    u'http://www.w3.org/2000/01/rdf-schema',
+    u'http://www.lesfleursdunormal.fr/static/_downloads/owlready_ontology.owl#editobj_priority',
+    u'http://www.w3.org/2000/01/rdf-schema#comment',
+    u'http://www.w3.org/2002/07/owl#TransitiveProperty',
+    u'http://www.w3.org/2002/07/owl#deprecated',
+    u'http://www.w3.org/2002/07/owl#incompatibleWith',
+    u'http://www.w3.org/2002/07/owl#priorVersion',
+    u'http://www.w3.org/2002/07/owl#Thing',
+    u'http://www.w3.org/2002/07/owl#AsymmetricProperty',
+    u'http://www.w3.org/2001/XMLSchema',
+    u'http://www.w3.org/2002/07/owl#AnnotationProperty'
+    }
+  del_key=[]
+  for key in IRIS:
+    if key not in keys_IRIS:
+      del_key.append(key)
+  for key in del_key: del IRIS[key]
+    
 class normstr(str): pass
 
 
