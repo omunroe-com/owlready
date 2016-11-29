@@ -44,7 +44,7 @@ class OWLXMLHandler(sax.handler.ContentHandler):
     self.objs                   = []
     self.annots                 = []
     self.current_content        = u""
-    self.ontology               = ontology or Ontology("", "")
+    self.ontology               = ontology or Ontology("", False)
     self.prefixes               = {}
     self.relations              = []
     self.ontologies_to_import   = []
@@ -97,6 +97,10 @@ class OWLXMLHandler(sax.handler.ContentHandler):
     
     elif (tag == "AnnotationAssertion") or (tag == "Annotation"): self.current_lang = None
     
+    elif (tag == "Ontology"):
+      if not self.ontology.base_iri:
+        self.ontology._set_base_iri(attrs["ontologyIRI"])
+        
     elif (tag == "RDF") or (tag == "rdf:RDF"): raise ValueError("OwlReady does not support OWL/RDF format. Please use OWL/XML.")
     
   def endElement(self, tag):
