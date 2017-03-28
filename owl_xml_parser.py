@@ -237,7 +237,7 @@ class OWLXMLHandler(sax.handler.ContentHandler):
       
     for prop in self.datatype_properties:
       if not prop.range: 
-        warnings.warn("%s is a range-less DataProperty, this is not supported by OwlReady! Please specify at least a very broad range, such as 'float or int or str'." % prop, OwlReadyRangelessDataProperty, 4)
+        warnings.warn("%s is a range-less DataProperty, this is not supported by OwlReady! Please specify at least a very broad range, such as 'float or int or str'." % prop, OwlReadyRangelessDataPropertyWarning, 4)
       
     
 def _rindex(l, o): return len(l) - list(reversed(l)).index(o) - 1

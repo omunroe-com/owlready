@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Owlready
-# Copyright (C) 2013-2014 Jean-Baptiste LAMY
+# Copyright (C) 2013-2017 Jean-Baptiste LAMY
 # LIMICS (Laboratoire d'informatique médicale et d'ingénierie des connaissances en santé), UMR_S 1142
 # University Paris 13, Sorbonne paris-Cité, Bobigny, France
 
@@ -40,13 +40,13 @@ _HERMIT_CLASSPATH = os.pathsep.join([os.path.join(_HERE, "hermit"), os.path.join
 #   javac -cp .:HermiT.jar ./org/semanticweb/HermiT/cli/CommandLine.java
 #   java  -cp .:HermiT.jar org.semanticweb.HermiT.cli.CommandLine -c -O -D -I /tmp/t.owl
 
-class OwlReadyWarning               (UserWarning): pass
-class OwlReadyUndefinedIRIWarning   (OwlReadyWarning): pass
-class OwlReadyOntologyIRIWarning    (OwlReadyWarning): pass
-class OwlReadyMROWarning            (OwlReadyWarning): pass
-class OwlReadyGeneratedNameWarning  (OwlReadyWarning): pass
-class OwlReadyDupplicatedNameWarning(OwlReadyWarning): pass
-class OwlReadyRangelessDataProperty (OwlReadyWarning): pass
+class OwlReadyWarning                     (UserWarning): pass
+class OwlReadyUndefinedIRIWarning         (OwlReadyWarning): pass
+class OwlReadyOntologyIRIWarning          (OwlReadyWarning): pass
+class OwlReadyMROWarning                  (OwlReadyWarning): pass
+class OwlReadyGeneratedNameWarning        (OwlReadyWarning): pass
+class OwlReadyDupplicatedNameWarning      (OwlReadyWarning): pass
+class OwlReadyRangelessDataPropertyWarning(OwlReadyWarning): pass
 
 def unload_all_ontologies():
   global onto_path
@@ -347,8 +347,6 @@ class Ontology(object):
         print("* Owlready * HermiT output:", file = sys.stderr)
         print(output, file = sys.stderr)
         
-    print(output, file = open("/tmp/sortie_hermit.txt", "w"))
-        
     is_a_relations  = {"SubClassOf", "SubObjectPropertyOf", "SubDataPropertyOf", "Type"}
     equiv_relations = {"EquivalentClasses", "EquivalentObjectProperties", "EquivalentDataProperties"}
     
@@ -570,7 +568,6 @@ class GeneratedName(object):
   def generate_name(self): return "__generated_name__"
 
 def _iri_changed(obj, old_iri, new_iri):
-  if new_iri == "http://purl.obolibrary.org/obo#BFO_0000050": efjozeif
   if IRIS.get(old_iri) is obj: del IRIS[old_iri]
   IRIS[new_iri] = obj
 
@@ -680,7 +677,7 @@ class EntityClass(type):
       if isinstance(Equivalent, EntityClass) and type.__subclasscheck__(Equivalent, Subclass): return True
     return False
   
-  def __instancescheck__(Class, instance):
+  def __instancescheck__(Class, instance): # XXX
     if type.__instancecheck__(Class, instance): return True
     return issubclass(instance.__class__, Class)
     
