@@ -6,6 +6,17 @@ as Python objects, modify them, save to OWL XML, and perform reasoning via Hermi
 (included). Owlready allows a transparent access to OWL ontologies (contrary
 to usual Java-based API).
 
+.. warning::
+  
+  Owlready is deprecated in favor to the new version, Owlready2:
+
+  http://bitbucket.org/jibalamy/owlready2 (development version)
+  
+  https://pypi.python.org/pypi/Owlready2 (stable version)
+  
+  http://www.lesfleursdunormal.fr/static/informatique/owlready/index_en.html (website)
+  
+  
 Owlready has been created at the LIMICS reseach lab,
 University Paris 13, Sorbonne Paris Cité, INSERM UMRS 1142, Paris 6 University, by
 Jean-Baptiste Lamy. It was developed during the VIIIP research project funded by ANSM, the French Drug Agency;

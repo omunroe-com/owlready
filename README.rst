@@ -3,7 +3,7 @@ Owlready
 
 Owlready (previously named Ontopy) is a module for ontology-oriented programming in Python 3.
 
-**Note: Owlready is deprecated in favor to the new version, Owlready2: http://bitbucket.org/jibalamy/owlready2 .**
+**Note: Owlready is deprecated in favor to the new version, Owlready2: https://pypi.python.org/pypi/Owlready2 .**
 
 Owlready can:
 
