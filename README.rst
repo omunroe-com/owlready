@@ -22,17 +22,14 @@ Owlready can:
 
 Owlready has been created by Jean-Baptiste Lamy at the LIMICS reseach lab.
 It is available under the GNU LGPL licence v3.
-In case of trouble, please contact Jean-Baptiste Lamy
-<jean-baptiste.lamy *@* univ-paris13 *.* fr>
+If you use Owlready in scientific works, **please cite the following article**:
 
-::
+   **Lamy JB**.
+   Owlready: Ontology-oriented programming in Python with automatic classification and high level constructs for biomedical ontologies.
+   **Artificial Intelligence In Medicine 2017**;80C:11-28
+   
+In case of troubles, questions or comments, please use this Forum/Mailing list: http://owlready.8326.n8.nabble.com
 
-  LIMICS
-  University Paris 13, Sorbonne Paris Cité
-  Bureau 149
-  74 rue Marcel Cachin
-  93017 BOBIGNY
-  FRANCE
 
   
 What can I do with Owlready?
@@ -99,6 +96,15 @@ Changelog
 * Add warnings
 * Accepts ontologies files that do not ends with '.owl'
 * Fix a bug when loading ontologies including concept without a '#' in their IRI
+  
+0.3.1
+*****
+
+* Add link to Owlready2 and Nabble forum/mailing list
+* Add load_ontology_from_file()
+* Add unload_all_ontologies()
+* Remove debug file /tmp/sortie_hermit.txt
+* Add Artificial Intelligence In Medicine scientific article in doc and Readme 
 
 
 Links
@@ -110,6 +116,17 @@ Owlready on PyPI (Python Package Index, stable release): https://pypi.python.org
 
 Documentation: http://pythonhosted.org/Owlready
 
-Mail me for any comment, problem, suggestion or help !
+Forum/Mailing list: http://owlready.8326.n8.nabble.com
 
-Jiba -- Jean-Baptiste LAMY -- jibalamy @ free.fr
+
+Contact "Jiba" Jean-Baptiste Lamy:
+
+::
+
+  <jean-baptiste.lamy *@* univ-paris13 *.* fr>
+  LIMICS
+  University Paris 13, Sorbonne Paris Cité
+  Bureau 149
+  74 rue Marcel Cachin
+  93017 BOBIGNY
+  FRANCE

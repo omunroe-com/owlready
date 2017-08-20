@@ -12,6 +12,11 @@ Jean-Baptiste Lamy. It was developed during the VIIIP research project funded by
 this is why most examples in this documentation relate to drug ;).
 
 Owlready is available under the GNU LGPL licence v3.
+If you use Owlready in scientific works, **please cite the following article**:
+
+   **Lamy JB**.
+   Owlready: Ontology-oriented programming in Python with automatic classification and high level constructs for biomedical ontologies.
+   **Artificial Intelligence In Medicine 2017**;80C:11-28
 
 Table of content
 ----------------
