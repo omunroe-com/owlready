@@ -270,6 +270,7 @@ class PropChildrenGroup(object):
         if s: range_restrictions.update(s)
         
       range_instance_onlys = { range_restriction for range_restriction in range_restrictions if isinstance(range_restriction, RangeInstanceOnly) }
+        
       if range_instance_onlys:
         instances = None
         for range_restriction in range_instance_onlys:

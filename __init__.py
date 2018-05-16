@@ -19,7 +19,6 @@
 
 VERSION = "0.3.1"
 
-
 import sys, os, types, tempfile, subprocess, weakref, re, urllib.request, warnings
 from io import StringIO
 from collections import defaultdict, OrderedDict
